@@ -1,0 +1,2938 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gyan Chaupar — Moksha Patam</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Yatra One (Devanagari), Playfair Display (Readable Serif), Cinzel Decorative (Souls-like Banners) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&family=Yatra+One&display=swap" rel="stylesheet">
+    <!-- Three.js r128 + OrbitControls -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+    <style>
+        :root {
+            --gold: #d4af37;
+            --gold-bright: #fef08a;
+        }
+
+        * {
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #070504;
+            font-family: 'Playfair Display', Georgia, serif;
+            color: #f5efe6;
+        }
+
+        .font-devanagari {
+            font-family: 'Yatra One', serif;
+        }
+
+        .font-souls {
+            font-family: 'Cinzel Decorative', serif;
+        }
+
+        .font-serif-ui {
+            font-family: 'Playfair Display', Georgia, serif;
+        }
+
+        #canvas-container {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        /* Heavy Temple Vignette for Depth & Weight */
+        .vignette-overlay {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 5;
+            background: radial-gradient(circle at 50% 50%, transparent 48%, rgba(4, 2, 1, 0.86) 100%);
+        }
+
+        /* Obsidian Sanctuary Panels (Zero expensive backdrop-filter blur for 60fps WebGL) */
+        .sanctum-bar {
+            background: rgba(12, 8, 6, 0.92);
+            border: 1px solid rgba(212, 175, 55, 0.28);
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.85), inset 0 1px 0 rgba(255, 235, 180, 0.12);
+        }
+
+        /* Weighted Serif Primary Button */
+        .btn-serif-gold {
+            font-family: 'Playfair Display', Georgia, serif;
+            background: linear-gradient(180deg, #3b2412 0%, #1c1008 100%);
+            border: 1px solid rgba(212, 175, 55, 0.65);
+            color: #fef08a;
+            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.85), inset 0 1px 1px rgba(255, 238, 170, 0.35);
+            transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.18s ease, box-shadow 0.18s ease;
+        }
+
+        .btn-serif-gold:hover:not(:disabled) {
+            border-color: #fef08a;
+            transform: translateY(-1px);
+            box-shadow: 0 14px 32px rgba(0, 0, 0, 0.9), 0 0 20px rgba(212, 175, 55, 0.28), inset 0 1px 2px rgba(255, 250, 210, 0.5);
+        }
+
+        .btn-serif-gold:active:not(:disabled) {
+            transform: translateY(1px);
+        }
+
+        .btn-serif-gold:disabled {
+            opacity: 0.42;
+            cursor: not-allowed;
+        }
+
+        /* Token Selection Card */
+        .token-slot {
+            background: rgba(18, 12, 9, 0.85);
+            border: 1px solid rgba(212, 175, 55, 0.22);
+            transition: all 0.2s ease;
+        }
+
+        .token-slot.active {
+            background: rgba(38, 24, 14, 0.92);
+            border-color: rgba(212, 175, 55, 0.78);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.7), inset 0 0 18px rgba(212, 175, 55, 0.08);
+        }
+
+        /* Souls-like Letterbox Banner */
+        #souls-banner {
+            pointer-events: none;
+            transition: opacity 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+            background: linear-gradient(90deg, transparent 0%, rgba(5, 3, 2, 0.93) 18%, rgba(5, 3, 2, 0.97) 50%, rgba(5, 3, 2, 0.93) 82%, transparent 100%);
+            border-top: 1px solid rgba(212, 175, 55, 0.35);
+            border-bottom: 1px solid rgba(212, 175, 55, 0.35);
+        }
+
+        .souls-title-scale {
+            letter-spacing: 0.22em;
+            transition: letter-spacing 1.8s cubic-bezier(0.16, 1, 0.3, 1), transform 1.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        #souls-banner.show .souls-title-scale {
+            letter-spacing: 0.32em;
+            transform: scale(1.03);
+        }
+
+        /* Subtle Square Lore Pill */
+        #inspect-pill {
+            transition: opacity 0.25s ease, transform 0.25s ease;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 3D WebGL Viewport -->
+    <div id="canvas-container"></div>
+    <div class="vignette-overlay"></div>
+
+    <!-- =================================================================== -->
+    <!-- SOULS-LIKE DRAMATIC OVERLAY BANNER (VIRTUE, VICE, MOKSHA)           -->
+    <!-- =================================================================== -->
+    <div id="souls-banner" class="fixed inset-x-0 top-1/2 -translate-y-1/2 py-8 z-40 opacity-0 flex flex-col items-center justify-center text-center px-4">
+        <div id="souls-kicker" class="text-xs sm:text-sm font-serif-ui italic tracking-[0.25em] text-amber-300/80 mb-1.5"></div>
+        <h2 id="souls-main" class="font-souls text-2xl sm:text-5xl font-bold souls-title-scale uppercase drop-shadow-[0_6px_20px_rgba(0,0,0,0.95)]">
+            MOKSHA ATTAINED
+        </h2>
+        <div class="w-48 h-[1px] bg-gradient-to-r from-transparent via-amber-400/70 to-transparent my-3"></div>
+        <p id="souls-sub" class="text-sm sm:text-lg font-serif-ui text-amber-100/90 tracking-wide"></p>
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- MINIMALIST START & TOKEN SELECTION SCREEN                           -->
+    <!-- =================================================================== -->
+    <div id="start-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 transition-opacity duration-500">
+        <div class="sanctum-bar rounded-2xl max-w-xl w-full p-7 sm:p-9 text-center relative">
+            <div class="text-amber-400/80 font-devanagari text-xl tracking-widest mb-1">ज्ञान चौपड़ · मोक्ष पटम्</div>
+            <h1 class="font-souls text-3xl sm:text-4xl text-amber-100 tracking-[0.16em] mb-2">GYAN CHAUPAR</h1>
+            <p class="font-serif-ui italic text-stone-400 text-sm mb-5">The 72-Square Carved Sanctuary of Karma &amp; Liberation</p>
+
+            <h2 class="font-serif-ui text-base sm:text-lg font-semibold text-amber-200/95 tracking-wide mb-3.5">
+                Choose your token
+            </h2>
+
+            <!-- 4 Clean Visual Token Slots (Click to cycle Human / Spirit AI / Off) -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-7">
+                <!-- Kubera -->
+                <button type="button" data-player="0" class="token-slot active rounded-xl p-3.5 flex flex-col items-center gap-2 cursor-pointer">
+                    <span class="w-8 h-8 rounded-full border border-amber-200/60 shadow-inner" style="background: radial-gradient(circle at 32% 30%, #fef08a, #b45309 70%, #451a03);"></span>
+                    <span class="font-serif-ui font-semibold text-amber-100 text-sm">Kubera</span>
+                    <span class="role-label text-xs font-serif-ui italic text-amber-300/90 px-2.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-400/30">Human</span>
+                </button>
+
+                <!-- Sankha -->
+                <button type="button" data-player="1" class="token-slot active rounded-xl p-3.5 flex flex-col items-center gap-2 cursor-pointer">
+                    <span class="w-8 h-8 rounded-full border border-teal-200/60 shadow-inner" style="background: radial-gradient(circle at 32% 30%, #5eead4, #0f766e 70%, #042f2e);"></span>
+                    <span class="font-serif-ui font-semibold text-amber-100 text-sm">Śaṅkha</span>
+                    <span class="role-label text-xs font-serif-ui italic text-teal-300/90 px-2.5 py-0.5 rounded-full bg-teal-500/15 border border-teal-400/30">Spirit AI</span>
+                </button>
+
+                <!-- Padma -->
+                <button type="button" data-player="2" class="token-slot rounded-xl p-3.5 flex flex-col items-center gap-2 cursor-pointer">
+                    <span class="w-8 h-8 rounded-full border border-red-200/60 shadow-inner" style="background: radial-gradient(circle at 32% 30%, #fca5a5, #b91c1c 70%, #450a0a);"></span>
+                    <span class="font-serif-ui font-semibold text-amber-100 text-sm">Padma</span>
+                    <span class="role-label text-xs font-serif-ui italic text-stone-500 px-2.5 py-0.5 rounded-full bg-stone-800/60 border border-stone-700/40">Off</span>
+                </button>
+
+                <!-- Guhyaka -->
+                <button type="button" data-player="3" class="token-slot rounded-xl p-3.5 flex flex-col items-center gap-2 cursor-pointer">
+                    <span class="w-8 h-8 rounded-full border border-stone-200/60 shadow-inner" style="background: radial-gradient(circle at 32% 30%, #ffffff, #a8a29e 70%, #292524);"></span>
+                    <span class="font-serif-ui font-semibold text-amber-100 text-sm">Guhyaka</span>
+                    <span class="role-label text-xs font-serif-ui italic text-stone-500 px-2.5 py-0.5 rounded-full bg-stone-800/60 border border-stone-700/40">Off</span>
+                </button>
+            </div>
+
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
+                <button id="btn-begin" class="btn-serif-gold w-full sm:w-auto px-10 py-3.5 rounded-xl text-lg font-semibold tracking-wide">
+                    Begin Pilgrimage
+                </button>
+                <button id="btn-start-learn" class="w-full sm:w-auto px-6 py-3.5 rounded-xl text-base font-serif-ui font-semibold text-amber-200/95 bg-stone-900/90 hover:bg-stone-800 border border-amber-500/40 transition flex items-center justify-center gap-2">
+                    <span>✦</span>
+                    <span>Guided Learning Path</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- GUIDED LEARNING MODE (DARŚANA) TRANSLUCENT OVERLAY                  -->
+    <!-- =================================================================== -->
+    <div id="learning-overlay" class="fixed inset-0 z-30 pointer-events-none hidden flex-col justify-between p-4 sm:p-6">
+        <!-- Top Learning Bar -->
+        <div class="flex items-center justify-between w-full max-w-5xl mx-auto">
+            <div class="pointer-events-auto sanctum-bar rounded-full px-5 py-2 flex items-center gap-3">
+                <span class="text-amber-400 text-sm">✦</span>
+                <span id="learn-top-badge" class="font-serif-ui font-semibold text-amber-100 text-sm tracking-wide">
+                    Guided Learning Path · Square 1 of 72
+                </span>
+            </div>
+
+            <div class="pointer-events-auto flex items-center gap-2.5">
+                <button id="btn-learn-autotour" class="sanctum-bar px-4 py-2 rounded-full text-xs font-serif-ui font-semibold text-amber-200/90 hover:text-amber-100 hover:border-amber-400/60 transition">
+                    ▶ Auto-Tour
+                </button>
+                <button id="btn-learn-settings" class="sanctum-bar w-10 h-10 rounded-full flex items-center justify-center text-amber-200/80 hover:text-amber-100 transition" title="Settings">
+                    ⚙
+                </button>
+                <button id="btn-exit-learn" class="sanctum-bar px-4 py-2 rounded-full text-xs font-serif-ui font-semibold text-stone-300 hover:text-amber-200 transition">
+                    ✕ Exit to Menu
+                </button>
+            </div>
+        </div>
+
+        <!-- Bottom Translucent Contemplative Card + Navigation -->
+        <div class="w-full flex flex-col items-center gap-3">
+            <div class="pointer-events-auto max-w-xl w-full rounded-2xl p-5 sm:p-6 border border-amber-400/35 bg-stone-950/92 shadow-[0_24px_60px_rgba(0,0,0,0.85)] transition-all duration-300">
+                <div class="flex items-start gap-4 sm:gap-5">
+                    <!-- Dynamic Sacred SVG Iconography -->
+                    <div id="learn-icon-box" class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl border border-amber-400/40 bg-amber-950/40 flex items-center justify-center shrink-0 shadow-inner">
+                    </div>
+
+                    <div class="flex-1 min-w-0">
+                        <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
+                            <span id="learn-loka-pill" class="text-[11px] font-serif-ui italic uppercase tracking-widest text-amber-400/90">
+                                Square 1 of 72 · Sacred Path
+                            </span>
+                            <span id="learn-type-badge" class="text-[10px] font-serif-ui uppercase tracking-widest px-2.5 py-0.5 rounded-full border border-amber-500/40 bg-amber-500/15 text-amber-200">
+                                Origin
+                            </span>
+                        </div>
+
+                        <div class="flex items-baseline gap-3 flex-wrap">
+                            <h3 id="learn-main-title" class="text-xl sm:text-2xl font-serif-ui font-bold text-amber-100">
+                                1 · Birth (Janma)
+                            </h3>
+                            <span id="learn-devanagari" class="font-devanagari text-lg text-amber-300/90">
+                                जन्म
+                            </span>
+                        </div>
+
+                        <p id="learn-body-text" class="text-xs sm:text-sm font-serif-ui text-stone-200/95 leading-relaxed mt-2">
+                        </p>
+
+                        <!-- Interactive Jump Button for Ladders & Snakes -->
+                        <div id="learn-jump-wrap" class="mt-3 hidden">
+                            <button id="btn-learn-jump" class="px-3.5 py-1.5 rounded-lg text-xs font-serif-ui font-semibold border transition flex items-center gap-2">
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Scrubber & Prev/Next Controls -->
+                <div class="mt-4 pt-3.5 border-t border-amber-500/20 flex flex-col sm:flex-row items-center gap-3">
+                    <div class="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-start">
+                        <button id="btn-learn-prev" class="px-3.5 py-1.5 rounded-lg bg-stone-900/90 hover:bg-stone-800 border border-amber-500/30 text-amber-100 font-serif-ui text-xs font-semibold transition">
+                            ← Prev Square
+                        </button>
+                        <button id="btn-learn-next" class="btn-serif-gold px-4 py-1.5 rounded-lg text-xs font-semibold">
+                            Next Square →
+                        </button>
+                    </div>
+
+                    <div class="flex items-center gap-2.5 w-full flex-1">
+                        <span class="text-[11px] font-serif-ui text-stone-400">1</span>
+                        <input id="learn-slider" type="range" min="1" max="72" value="1" class="w-full accent-amber-400 cursor-pointer h-1.5 bg-stone-800 rounded-lg">
+                        <span class="text-[11px] font-serif-ui text-stone-400">72</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- MINIMALIST IN-GAME HUD (ONLY ESSENTIAL TURN & CAST ACTION)          -->
+    <!-- =================================================================== -->
+    <div id="game-hud" class="fixed inset-0 z-20 pointer-events-none flex flex-col justify-between p-4 sm:p-6 opacity-0 transition-opacity duration-500">
+        <!-- Top Row: Active Pilgrim Pill (Left) + Camera & Settings Icons (Right) -->
+        <div class="flex items-center justify-between w-full max-w-6xl mx-auto">
+            <div class="pointer-events-auto sanctum-bar rounded-full px-4 py-2 flex items-center gap-3">
+                <span id="hud-token-dot" class="w-3.5 h-3.5 rounded-full bg-amber-400 shadow"></span>
+                <span id="hud-player-name" class="font-serif-ui font-semibold text-sm sm:text-base text-amber-100">Kubera</span>
+                <span class="text-stone-600">·</span>
+                <span id="hud-square-label" class="font-serif-ui italic text-xs sm:text-sm text-amber-300/90">Square 1 · Janma</span>
+                <button id="btn-lore-toggle" class="ml-1 px-2.5 py-0.5 rounded-full text-xs font-serif-ui text-amber-200/90 bg-amber-500/15 hover:bg-amber-500/30 border border-amber-400/35 transition flex items-center gap-1" title="Contemplate the meaning of your current square">
+                    <span class="font-devanagari text-[11px]">शास्त्र</span>
+                    <span>Lore</span>
+                </button>
+            </div>
+
+            <div class="pointer-events-auto flex items-center gap-2.5">
+                <button id="btn-cam-reset" class="sanctum-bar w-10 h-10 rounded-full flex items-center justify-center text-amber-200/80 hover:text-amber-100 hover:border-amber-400/60 transition" title="Recenter Camera on Active Token">
+                    ⌖
+                </button>
+                <button id="btn-open-settings" class="sanctum-bar w-10 h-10 rounded-full flex items-center justify-center text-amber-200/80 hover:text-amber-100 hover:border-amber-400/60 transition" title="Settings">
+                    ⚙
+                </button>
+            </div>
+        </div>
+
+        <!-- Bottom Row: Subtle Optional Square Inspect Pill + Interactive Prana Cast Control -->
+        <div class="flex flex-col items-center gap-3 w-full">
+            <!-- Non-Intrusive Contemplative Lore Card (Only visible when user clicks Lore or clicks a carved square) -->
+            <div id="inspect-pill" class="pointer-events-auto hidden sm:flex flex-col sanctum-bar rounded-2xl px-5 py-4 max-w-sm fixed left-6 bottom-6 opacity-0 translate-y-2 z-30">
+                <div class="flex items-center justify-between gap-4 mb-1">
+                    <span id="inspect-kicker" class="text-[11px] font-serif-ui italic text-amber-400/90 tracking-widest uppercase">Square 1 · Sacred Path</span>
+                    <button id="btn-close-inspect" class="text-stone-400 hover:text-amber-200 text-xs px-1">✕</button>
+                </div>
+                <div class="flex items-baseline gap-2.5">
+                    <span id="inspect-title" class="font-devanagari text-xl text-amber-200">१ · जन्म</span>
+                    <span id="inspect-sub" class="font-serif-ui text-sm text-stone-300">Janma — Birth</span>
+                </div>
+                <p id="inspect-lore" class="text-xs font-serif-ui text-stone-300/90 mt-2 leading-relaxed border-t border-amber-500/20 pt-2"></p>
+                <div id="inspect-link" class="text-[11px] font-serif-ui font-semibold text-amber-300 mt-1.5"></div>
+            </div>
+
+            <!-- Primary Cast Control + Prana Breath Meter + Dice Readout -->
+            <div class="pointer-events-auto flex flex-col items-center gap-2">
+                <!-- Interactive Prana Breath Meter (Appears while holding to shake bone dice) -->
+                <div id="prana-meter-wrap" class="w-56 h-2 rounded-full bg-stone-950/90 border border-amber-500/35 overflow-hidden relative opacity-0 transition-opacity duration-200">
+                    <!-- Golden Sattvic Sweet Spot Band -->
+                    <div class="absolute inset-y-0 left-[62%] w-[22%] bg-amber-300/25 border-x border-amber-300/60"></div>
+                    <div id="prana-gauge-bar" class="h-full w-0 bg-gradient-to-r from-amber-700 via-amber-400 to-yellow-200"></div>
+                </div>
+
+                <div class="sanctum-bar rounded-2xl p-2 pl-4 flex items-center gap-4">
+                    <div class="flex items-center gap-2.5">
+                        <span id="dice-val-dev" class="font-devanagari text-2xl sm:text-3xl text-amber-300 leading-none min-w-[2.2rem] text-center">—</span>
+                        <span id="dice-val-num" class="text-xs font-serif-ui italic text-stone-400 min-w-[3.2rem]">Pāśaka</span>
+                    </div>
+
+                    <button id="btn-cast-dice" class="btn-serif-gold px-7 py-3 rounded-xl text-base sm:text-lg font-semibold tracking-wide">
+                        Hold &amp; Release Pāśaka
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- SETTINGS MODAL (WOOD SPECIES, ALL-ENGLISH SCRIPT, AUDIO, CAMERA)    -->
+    <!-- =================================================================== -->
+    <div id="settings-modal" class="fixed inset-0 z-50 bg-black/75 hidden items-center justify-center p-4">
+        <div class="sanctum-bar rounded-2xl max-w-md w-full p-6 sm:p-7">
+            <div class="flex items-center justify-between pb-4 mb-5 border-b border-amber-500/20">
+                <h3 class="font-serif-ui text-xl font-semibold text-amber-100">Sanctuary Settings</h3>
+                <button id="btn-close-settings" class="text-stone-400 hover:text-amber-200 text-lg px-2">✕</button>
+            </div>
+
+            <div class="space-y-5 font-serif-ui">
+                <!-- Script & Language Mode -->
+                <div>
+                    <label class="block text-xs uppercase tracking-widest text-amber-300/80 mb-2">Language &amp; Numerals</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button data-script="sanskrit" class="script-opt py-2 rounded-lg text-xs border border-amber-500/25 bg-stone-900/70 text-stone-300">संस्कृतम्</button>
+                        <button data-script="bilingual" class="script-opt py-2 rounded-lg text-xs border border-amber-400 bg-amber-500/20 text-amber-100 font-semibold">Bilingual</button>
+                        <button data-script="english" class="script-opt py-2 rounded-lg text-xs border border-amber-500/25 bg-stone-900/70 text-stone-300">All English</button>
+                    </div>
+                </div>
+
+                <!-- Wood Species -->
+                <div>
+                    <label class="block text-xs uppercase tracking-widest text-amber-300/80 mb-2">Carved Timber</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button data-wood="sheesham" class="wood-opt py-2 px-3 rounded-lg text-xs border border-amber-400 bg-amber-500/20 text-amber-100 font-semibold text-left">Sheesham Rosewood</button>
+                        <button data-wood="teak" class="wood-opt py-2 px-3 rounded-lg text-xs border border-amber-500/25 bg-stone-900/70 text-stone-300 text-left">Burma Teak</button>
+                        <button data-wood="sandalwood" class="wood-opt py-2 px-3 rounded-lg text-xs border border-amber-500/25 bg-stone-900/70 text-stone-300 text-left">Mysore Sandalwood</button>
+                        <button data-wood="ebony" class="wood-opt py-2 px-3 rounded-lg text-xs border border-amber-500/25 bg-stone-900/70 text-stone-300 text-left">Carved Black Ebony</button>
+                    </div>
+                </div>
+
+                <!-- Toggles -->
+                <div class="space-y-3 pt-1">
+                    <label class="flex items-center justify-between cursor-pointer">
+                        <span class="text-sm text-stone-200">Follow Active Token with Camera</span>
+                        <input id="toggle-cam-follow" type="checkbox" checked class="w-4 h-4 accent-amber-500">
+                    </label>
+                    <label class="flex items-center justify-between cursor-pointer">
+                        <span class="text-sm text-stone-200">Temple Acoustics &amp; Thuds</span>
+                        <input id="toggle-sfx" type="checkbox" checked class="w-4 h-4 accent-amber-500">
+                    </label>
+                    <label class="flex items-center justify-between cursor-pointer">
+                        <span class="text-sm text-stone-200">Subtle Tanpura Drone</span>
+                        <input id="toggle-drone" type="checkbox" class="w-4 h-4 accent-amber-500">
+                    </label>
+                </div>
+
+                <!-- Actions -->
+                <div class="pt-4 border-t border-amber-500/20 flex items-center justify-between gap-3">
+                    <button id="btn-change-pilgrims" class="px-4 py-2.5 rounded-xl text-xs font-semibold bg-stone-900 hover:bg-stone-800 text-amber-200 border border-amber-500/30">
+                        Main Menu / Mode
+                    </button>
+                    <button id="btn-reset-match" class="btn-serif-gold px-5 py-2.5 rounded-xl text-xs font-semibold">
+                        Reset Pilgrimage
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /***********************************************************************
+         * 1. AUTHENTIC 72-SQUARE VEDIC COSMOLOGY, LADDERS & SERPENTS
+         *    Historical 9 Columns × 8 Rows Boustrophedon Layout:
+         *    Row 8 (Top): 72 (left) ← 71 ← 70 ← 69 ← [68 Vaikuṇṭha Center] ← 67 ← 66 ← 65 ← 64 (right)
+         ***********************************************************************/
+        const COLS = 9;
+        const ROWS = 8;
+
+        const SQUARES_RAW = [
+            // Row 1 (1 → 9, Left to Right): The Fundamentals of Being
+            [1, "जन्म", "Janma", "Birth"], [2, "माया", "Māyā", "Illusion"], [3, "क्रोध", "Krodha", "Wrath"], [4, "लोभ", "Lobha", "Greed"],
+            [5, "भूलोक", "Bhūloka", "Physical Plane"], [6, "मोह", "Moha", "Delusion"], [7, "मद", "Mada", "Conceit"], [8, "मत्सर", "Matsara", "Avarice"],
+            [9, "कामलोक", "Kāmaloka", "Sensual Plane"],
+            // Row 2 (10 ← 18, Right to Left): The Realm of Fantasy
+            [10, "तप / शुद्धि", "Tapas", "Purification"], [11, "गंधर्व", "Gandharva", "Celestial Mirth"], [12, "ईर्ष्या", "Īrṣyā", "Envy"],
+            [13, "अंतरिक्ष", "Antarikṣa", "Nullity"], [14, "भुवर्लोक", "Bhuvarloka", "Astral Plane"], [15, "नागलोक", "Nāgaloka", "Realm of Fantasy"], [16, "द्वेष", "Dveṣa", "Jealousy"],
+            [17, "दया", "Dayā", "Compassion"], [18, "हर्षलोक", "Harṣaloka", "Plane of Joy"],
+            // Row 3 (19 → 27, Left to Right): The Theater of Karma
+            [19, "कर्मलोक", "Karmaloka", "Plane of Action"], [20, "दान", "Dāna", "Charity"],
+            [21, "समन पाप", "Samana Pāpa", "Atonement"], [22, "धर्मलोक", "Dharmaloka", "Plane of Dharma"], [23, "स्वर्गलोक", "Svargaloka", "Heavenly Plane"], [24, "कुसंग", "Kusaṅga", "Bad Company"],
+            [25, "सुसंग", "Susaṅga", "Good Company"], [26, "दुःख", "Duḥkha", "Sorrow"], [27, "परमार्थ", "Paramārtha", "Selfless Service"],
+            // Row 4 (28 ← 36, Right to Left): Attaining Balance
+            [28, "सुधर्म", "Sudharma", "True Faith"], [29, "अधर्म", "Adharma", "Unrighteousness"], [30, "उत्तम गति", "Uttama Gati", "Noble Tendencies"], [31, "यक्षलोक", "Yakṣaloka", "Plane of Sanctity"], [32, "महर्लोक", "Maharloka", "Plane of Balance"],
+            [33, "गंधलोक", "Gandhaloka", "Plane of Fragrance"], [34, "रसलोक", "Rasaloka", "Plane of Taste"], [35, "नरकलोक", "Narakaloka", "Purgatory"], [36, "स्वच्छ", "Svaccha", "Clarity"],
+            // Row 5 (37 → 45, Left to Right): Awakening of Knowledge
+            [37, "ज्ञान", "Jñāna", "Sacred Wisdom"], [38, "प्राणलोक", "Prāṇaloka", "Life Breath"], [39, "अपानलोक", "Apānaloka", "Vital Elimination"], [40, "व्यानलोक", "Vyānaloka", "Pervading Breath"],
+            [41, "जनलोक", "Janaloka", "Creative Plane"], [42, "अग्निलोक", "Agniloka", "Plane of Fire"], [43, "मनुष्य जन्म", "Manuṣya Janma", "Human Birth"], [44, "अविद्या", "Avidyā", "Ignorance"],
+            [45, "सुविद्या", "Suvidyā", "Right Knowledge"],
+            // Row 6 (46 ← 54, Right to Left): The Time of Penance
+            [46, "विवेक", "Viveka", "Conscience"], [47, "सरस्वती", "Sarasvatī", "Stream of Wisdom"], [48, "यमुना", "Yamunā", "Stream of Devotion"],
+            [49, "गंगा", "Gaṅgā", "Purification"], [50, "तपोलोक", "Tapoloka", "Plane of Austerity"], [51, "पृथ्वी", "Pṛthvī", "Earth"], [52, "हिंसालोक", "Hiṃsāloka", "Plane of Violence"],
+            [53, "जललोक", "Jalaloka", "Liquid Plane"], [54, "भक्तिलोक", "Bhaktiloka", "Spiritual Devotion"],
+            // Row 7 (55 → 63, Left to Right): The Plane of Reality
+            [55, "अहंकार", "Ahaṃkāra", "Egotism"], [56, "ओङ्कार", "Oṃkāra", "Primal Vibration"],
+            [57, "वायुलोक", "Vāyuloka", "Plane of Wind"], [58, "तेजलोक", "Tejaloka", "Plane of Radiance"], [59, "सत्यलोक", "Satyaloka", "Plane of Truth"], [60, "सुबुद्धि", "Subuddhi", "Positive Intellect"],
+            [61, "दुर्बुद्धि", "Durbuddhi", "Negative Intellect"], [62, "सुख", "Sukha", "Happiness"], [63, "तमस", "Tamas", "Darkness"],
+            // Row 8 (64 ← 72, Right to Left): The Cosmic Summit (68 Vaikuṇṭha at Exact Center, Col 5)
+            [64, "प्रकृतिलोक", "Prakṛtiloka", "Phenomenal Nature"],
+            [65, "उरन्तलोक", "Urantaloka", "Inner Space"], [66, "आनन्दलोक", "Ānandaloka", "Plane of Bliss"], [67, "रुद्रलोक", "Rudraloka", "Shiva's Plane"], [68, "वैकुण्ठ", "Vaikuṇṭha", "Moksha"],
+            [69, "ब्रह्मलोक", "Brahmaloka", "Absolute Plane"], [70, "सत्वगुण", "Sattvaguṇa", "Purity"], [71, "रजोगुण", "Rajoguṇa", "Activity"], [72, "तमोगुण", "Tamoguṇa", "Inertia"]
+        ];
+
+        const LADDERS = [
+            { from: 10, to: 23, sanskrit: 'तप → स्वर्गलोक', name: 'Tapas (Purification)' },
+            { from: 17, to: 69, sanskrit: 'दया → ब्रह्मलोक', name: 'Dayā (Compassion)' },
+            { from: 20, to: 32, sanskrit: 'दान → महर्लोक', name: 'Dāna (Charity)' },
+            { from: 22, to: 60, sanskrit: 'धर्म → सुबुद्धि', name: 'Dharma (Righteousness)' },
+            { from: 27, to: 41, sanskrit: 'परमार्थ → जनलोक', name: 'Paramārtha (Selfless Service)' },
+            { from: 28, to: 50, sanskrit: 'सुधर्म → तपोलोक', name: 'Sudharma (True Faith)' },
+            { from: 37, to: 66, sanskrit: 'ज्ञान → आनन्दलोक', name: 'Jñāna (Sacred Wisdom)' },
+            { from: 45, to: 67, sanskrit: 'सुविद्या → रुद्रलोक', name: 'Suvidyā (Right Knowledge)' },
+            { from: 46, to: 62, sanskrit: 'विवेक → सुख', name: 'Viveka (Conscience)' },
+            { from: 54, to: 68, sanskrit: 'भक्ति → वैकुण्ठ', name: 'Bhakti (Spiritual Devotion)' }
+        ];
+
+        const SNAKES = [
+            { from: 12, to: 2,  sanskrit: 'ईर्ष्या → माया', name: 'Īrṣyā (Envy)', color: '#881337' },
+            { from: 16, to: 4,  sanskrit: 'द्वेष → लोभ', name: 'Dveṣa (Jealousy)', color: '#7f1d1d' },
+            { from: 24, to: 7,  sanskrit: 'कुसंग → मद', name: 'Kusaṅga (Bad Company)', color: '#581c87' },
+            { from: 29, to: 6,  sanskrit: 'अधर्म → मोह', name: 'Adharma (Unrighteousness)', color: '#7c2d12' },
+            { from: 44, to: 9,  sanskrit: 'अविद्या → कामलोक', name: 'Avidyā (Ignorance)', color: '#7f1d1d' },
+            { from: 52, to: 35, sanskrit: 'हिंसा → नरकलोक', name: 'Hiṃsā (Violence)', color: '#991b1b' },
+            { from: 55, to: 3,  sanskrit: 'अहंकार → क्रोध', name: 'Ahaṃkāra (Egotism)', color: '#450a0a' },
+            { from: 61, to: 13, sanskrit: 'दुर्बुद्धि → अंतरिक्ष', name: 'Durbuddhi (Negative Intellect)', color: '#3b0764' },
+            { from: 63, to: 2,  sanskrit: 'तमस → माया', name: 'Tamas (Darkness)', color: '#1c1917' },
+            { from: 72, to: 51, sanskrit: 'तमोगुण → पृथ्वी', name: 'Tamoguṇa (Inertia)', color: '#7f1d1d' }
+        ];
+
+        // Build lookup map
+        const SQUARES = {};
+        SQUARES_RAW.forEach(([num, sanskrit, iast, english]) => {
+            const idx = num - 1;
+            const row = Math.floor(idx / COLS);
+            const ladder = LADDERS.find(l => l.from === num) || null;
+            const snake = SNAKES.find(s => s.from === num) || null;
+
+            let lore = `Square ${num} embodies ${iast} (${english}) on the karmic path toward liberation.`;
+            if (num === 68) {
+                lore = `Vaikuṇṭha — Supreme Liberation (Moksha). Landing directly or ascending through Bhakti (54) liberates the pilgrim from the cycle of rebirth.`;
+            } else if (ladder) {
+                lore = `Virtue Gate of ${iast} (${english}): Cultivating this virtue elevates the soul directly up the carved Sopāna steps to Square ${ladder.to}.`;
+            } else if (snake) {
+                lore = `Karmic Serpent of ${iast} (${english}): Succumbing to this fetter pulls consciousness down the Nāga spine back to Square ${snake.to}.`;
+            }
+
+            SQUARES[num] = {
+                num, sanskrit, iast, english, row,
+                ladder, snake, lore
+            };
+        });
+
+        // Deep contemplative wisdom for all 72 squares (used in Learning Mode & Lore)
+        const WISDOM_NOTES = {
+            1: "Every conscious journey begins at Janma (Birth), entering the material arena where every thought and action weaves karma.",
+            2: "Māyā veils the underlying unity of existence, making fleeting appearances seem ultimate.",
+            3: "Krodha (Wrath) clouds discernment; here the giant serpent of Ego (55) throws the fallible seeker back.",
+            4: "Lobha (Greed) is the insatiable thirst for possession, where Jealousy (16) ultimately drains the spirit.",
+            5: "Bhūloka represents grounded awareness upon the physical earth plane.",
+            6: "Moha (Delusion) binds the heart through attachment and confused priorities.",
+            7: "Mada (Conceit & Vanity) blinds the mind to humility; Bad Company (24) drags one down here.",
+            8: "Matsara (Avarice) burns quietly when comparing one's path to another's fortune.",
+            9: "Kāmaloka (Sensual Plane) pulls Ignorance (44) downward into restless craving.",
+            10: "Tapas / Śuddhi (Purification & Austerity) kindles inner fire, raising the pilgrim up a golden ladder to Svargaloka (23).",
+            12: "Īrṣyā (Envy) resents another's grace and immediately slides consciousness back to Illusion (2).",
+            16: "Dveṣa (Jealousy & Aversion) hardens the heart and pulls consciousness down to Greed (4).",
+            17: "Dayā (Boundless Compassion) recognizes oneself in all beings—the longest ladder on the board, soaring to Brahmaloka (69).",
+            20: "Dāna (Selfless Charity) loosens the grip of ego and elevates the soul to Maharloka, the Plane of Balance (32).",
+            22: "Dharmaloka (Righteousness & Cosmic Order) steadies the mind, ascending directly to Positive Intellect (60).",
+            24: "Kusaṅga (Bad Company) erodes noble resolve, sliding back into Conceit (7).",
+            25: "Susaṅga (Good Company) nurtures clarity and steadiness on the upward path.",
+            27: "Paramārtha (Selfless Service) lifts the seeker beyond personal gain into Janaloka, the Creative Plane (41).",
+            28: "Sudharma (True Faith) aligns action with one's true nature, ascending to Tapoloka, the Plane of Austerity (50).",
+            29: "Adharma (Unrighteousness) fractures inner peace and pulls the soul down to Delusion (6).",
+            32: "Maharloka (Plane of Balance) harmonizes lower worldly striving with higher spiritual vision, reached directly via Charity (20).",
+            35: "Narakaloka (Purgatory) is the heavy karmic consequence where Violence (52) lands.",
+            37: "Jñāna (Sacred Wisdom) awakens direct insight into reality, climbing straight to Ānandaloka, the Plane of Bliss (66).",
+            44: "Avidyā (Ignorance) mistakes the perishable for the eternal, falling back to the Sensual Plane (9).",
+            45: "Suvidyā (Right Knowledge) illuminates reality, ascending to Shiva's Plane of Rudraloka (67).",
+            46: "Viveka (Conscience & Discernment) separates the real from the unreal, rising to Sukha, Happiness (62).",
+            47: "Sarasvatī — the sacred current of wisdom, learning, and inner harmony.",
+            48: "Yamunā — the sweet solar current of loving devotion.",
+            49: "Gaṅgā — the purifying stream that washes away accumulated karmic dust.",
+            52: "Hiṃsāloka (Plane of Violence) violates the sanctity of life, plunging down to Purgatory (35).",
+            53: "Jalaloka (Liquid Plane) represents emotional fluidity and adaptability before the gate of Devotion (54).",
+            54: "Bhaktiloka (Spiritual Devotion) surrenders the ego completely, ascending directly into Vaikuṇṭha — Supreme Liberation (68).",
+            55: "Ahaṃkāra (Egotism) is the longest serpent on the board, plunging from near the summit all the way down to Wrath (3).",
+            61: "Durbuddhi (Negative Intellect) poisons high attainment, dropping back to Nullity (13).",
+            63: "Tamas (Spiritual Darkness) obscures truth even near the peak, falling back to Illusion (2).",
+            65: "Urantaloka (Plane of Inner Space) opens the vast contemplative expanse within the heart.",
+            68: "Vaikuṇṭha (Moksha) — Cosmic Consciousness at the exact center of the top row (Column 5 of 9). Landing here directly or via Bhakti (54) liberates the soul.",
+            69: "Brahmaloka — The Absolute Plane of the Creator. Even if you overshoot Vaikuṇṭha (68) or climb here from Compassion (17), the top-row cycle carries you toward 72 so you can re-approach liberation.",
+            70: "Sattvaguṇa — Luminous Purity in the highest cosmic triad.",
+            71: "Rajoguṇa — Dynamic Activity at the edge of the cosmic cycle.",
+            72: "Tamoguṇa (Inertia at the Brink): Situated at the top-left corner of the 9×8 grid, its serpent returns you to Earth (51)—just three squares away from the Bhakti (54 → 68) ladder."
+        };
+
+        const DEV_DIGITS = ['०', '१', '२', '३', '४', '५', '६', '७', '८', '९'];
+        function toDevanagariDigits(n) {
+            return String(n).split('').map(c => DEV_DIGITS[parseInt(c, 10)] ?? c).join('');
+        }
+
+        function formatNum(n) {
+            return currentScriptMode === 'english' ? String(n) : toDevanagariDigits(n);
+        }
+
+        /***********************************************************************
+         * 2. WEIGHTED TEMPLE ACOUSTICS (WEB AUDIO API SYNTHESIZER)
+         ***********************************************************************/
+        class TempleAudioEngine {
+            constructor() {
+                this.ctx = null;
+                this.sfxEnabled = true;
+                this.droneEnabled = false;
+                this.droneNodes = [];
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    if (AudioCtx) this.ctx = new AudioCtx();
+                }
+                if (this.ctx && this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+
+            playBoneDiceBounce(intensity = 1.0) {
+                if (!this.sfxEnabled) return;
+                this.init();
+                if (!this.ctx) return;
+
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(620 + Math.random() * 240, now);
+                osc.frequency.exponentialRampToValueAtTime(140, now + 0.045);
+
+                gain.gain.setValueAtTime(0.24 * intensity, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.055);
+            }
+
+            playHeavyTokenThud(stepIndex = 0) {
+                if (!this.sfxEnabled) return;
+                this.init();
+                if (!this.ctx) return;
+
+                const now = this.ctx.currentTime;
+                const bodyOsc = this.ctx.createOscillator();
+                const bodyGain = this.ctx.createGain();
+                bodyOsc.type = 'sine';
+                bodyOsc.frequency.setValueAtTime(118 + (stepIndex % 5) * 6, now);
+                bodyOsc.frequency.exponentialRampToValueAtTime(38, now + 0.11);
+
+                bodyGain.gain.setValueAtTime(0.34, now);
+                bodyGain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+
+                bodyOsc.connect(bodyGain);
+                bodyGain.connect(this.ctx.destination);
+                bodyOsc.start(now);
+                bodyOsc.stop(now + 0.125);
+
+                const ringOsc = this.ctx.createOscillator();
+                const ringGain = this.ctx.createGain();
+                ringOsc.type = 'sine';
+                ringOsc.frequency.setValueAtTime(1280 + (stepIndex % 4) * 90, now);
+                ringGain.gain.setValueAtTime(0.045, now);
+                ringGain.gain.exponentialRampToValueAtTime(0.0008, now + 0.18);
+
+                ringOsc.connect(ringGain);
+                ringGain.connect(this.ctx.destination);
+                ringOsc.start(now);
+                ringOsc.stop(now + 0.19);
+            }
+
+            playLadderAscent() {
+                if (!this.sfxEnabled) return;
+                this.init();
+                if (!this.ctx) return;
+
+                const now = this.ctx.currentTime;
+                [293.66, 587.33, 880.0].forEach((freq, idx) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = idx === 0 ? 'sawtooth' : 'sine';
+                    osc.frequency.setValueAtTime(freq * 0.94, now);
+                    osc.frequency.exponentialRampToValueAtTime(freq, now + 0.28);
+
+                    const filter = this.ctx.createBiquadFilter();
+                    filter.type = 'bandpass';
+                    filter.frequency.value = freq;
+                    filter.Q.value = 6.0;
+
+                    const amp = idx === 0 ? 0.16 : 0.08 / idx;
+                    gain.gain.setValueAtTime(0.001, now);
+                    gain.gain.linearRampToValueAtTime(amp, now + 0.25);
+                    gain.gain.setValueAtTime(amp, now + 0.95);
+                    gain.gain.exponentialRampToValueAtTime(0.0008, now + 1.85);
+
+                    osc.connect(filter);
+                    filter.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 1.9);
+                });
+
+                const notes = [293.66, 329.63, 369.99, 440.0, 493.88, 554.37, 587.33, 880.0];
+                notes.forEach((freq, i) => {
+                    const t = now + 0.15 + i * 0.09;
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, t);
+
+                    gain.gain.setValueAtTime(0.001, t);
+                    gain.gain.linearRampToValueAtTime(0.11, t + 0.02);
+                    gain.gain.exponentialRampToValueAtTime(0.0008, t + 0.85);
+
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(t);
+                    osc.stop(t + 0.88);
+                });
+            }
+
+            playSnakeDescent() {
+                if (!this.sfxEnabled) return;
+                this.init();
+                if (!this.ctx) return;
+
+                const now = this.ctx.currentTime;
+                for (let b = 0; b < 5; b++) {
+                    const bt = now + b * 0.075;
+                    const dOsc = this.ctx.createOscillator();
+                    const dGain = this.ctx.createGain();
+                    dOsc.type = 'triangle';
+                    dOsc.frequency.setValueAtTime(195 - b * 14, bt);
+                    dOsc.frequency.exponentialRampToValueAtTime(58, bt + 0.065);
+                    dGain.gain.setValueAtTime(0.22, bt);
+                    dGain.gain.exponentialRampToValueAtTime(0.001, bt + 0.07);
+                    dOsc.connect(dGain);
+                    dGain.connect(this.ctx.destination);
+                    dOsc.start(bt);
+                    dOsc.stop(bt + 0.072);
+                }
+
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(165, now);
+                osc.frequency.exponentialRampToValueAtTime(42, now + 1.15);
+
+                const filter = this.ctx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(420, now);
+                filter.frequency.exponentialRampToValueAtTime(95, now + 1.15);
+
+                gain.gain.setValueAtTime(0.26, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
+
+                osc.connect(filter);
+                filter.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 1.22);
+            }
+
+            playRealmBell() {
+                if (!this.sfxEnabled) return;
+                this.init();
+                if (!this.ctx) return;
+
+                const now = this.ctx.currentTime;
+                [432, 864, 1296].forEach((freq, idx) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, now);
+
+                    gain.gain.setValueAtTime(0.11 / (idx + 1), now);
+                    gain.gain.exponentialRampToValueAtTime(0.0008, now + 1.4);
+
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 1.45);
+                });
+            }
+
+            toggleDrone(enable) {
+                this.droneEnabled = enable;
+                if (enable) {
+                    this.init();
+                    if (!this.ctx || this.droneNodes.length) return;
+                    [146.83, 220.0, 293.66].forEach(f => {
+                        const osc = this.ctx.createOscillator();
+                        const gain = this.ctx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.value = f;
+                        gain.gain.value = 0.018;
+                        osc.connect(gain);
+                        gain.connect(this.ctx.destination);
+                        osc.start();
+                        this.droneNodes.push({ osc, gain });
+                    });
+                } else {
+                    this.droneNodes.forEach(n => {
+                        try { n.osc.stop(); } catch (e) {}
+                    });
+                    this.droneNodes = [];
+                }
+            }
+        }
+
+        const audio = new TempleAudioEngine();
+
+        /***********************************************************************
+         * 3. BOARD GEOMETRY & BOUSTROPHEDON COORDINATE MAPPING (9 COLS × 8 ROWS)
+         ***********************************************************************/
+        const BOARD_W = 11.7;
+        const BOARD_D = 10.4;
+        const BOARD_H = 0.68;
+        const CELL_W = BOARD_W / COLS;
+        const CELL_D = BOARD_D / ROWS;
+
+        function getSquareCoords(num) {
+            const idx = Math.max(0, Math.min(71, num - 1));
+            const row = Math.floor(idx / COLS);
+            const colInRow = idx % COLS;
+            const col = (row % 2 === 0) ? colInRow : (COLS - 1 - colInRow);
+
+            const u = (col + 0.5) / COLS;
+            const v = (row + 0.5) / ROWS;
+
+            const worldX = -BOARD_W / 2 + (col + 0.5) * CELL_W;
+            const worldZ = BOARD_D / 2 - (row + 0.5) * CELL_D;
+
+            return { row, col, u, v, worldX, worldZ };
+        }
+
+        /***********************************************************************
+         * 4. HIGH-RELIEF CARVED WOOD & ENGRAVED SNAKES/LADDERS TEXTURE ENGINE
+         ***********************************************************************/
+        const WOOD_PALETTES = {
+            sheesham: {
+                baseHex: '#2a160c',
+                cofferHex: '#1b0d06',
+                grainHex: '#120804',
+                inlayHex: '#d4af37',
+                frameColor: 0x231108,
+                textHex: '#fef08a'
+            },
+            teak: {
+                baseHex: '#4a2c16',
+                cofferHex: '#331d0d',
+                grainHex: '#211207',
+                inlayHex: '#eab308',
+                frameColor: 0x3b2210,
+                textHex: '#fef9c3'
+            },
+            sandalwood: {
+                baseHex: '#78522b',
+                cofferHex: '#5c3d1e',
+                grainHex: '#3d2711',
+                inlayHex: '#fef08a',
+                frameColor: 0x5c3d1e,
+                textHex: '#fffbeb'
+            },
+            ebony: {
+                baseHex: '#171412',
+                cofferHex: '#0c0a09',
+                grainHex: '#050404',
+                inlayHex: '#f59e0b',
+                frameColor: 0x120f0e,
+                textHex: '#fde68a'
+            }
+        };
+
+        let currentWoodKey = 'sheesham';
+        let currentScriptMode = 'bilingual';
+
+        function generateCarvedBoardTextures(woodKey, scriptMode) {
+            const palette = WOOD_PALETTES[woodKey] || WOOD_PALETTES.sheesham;
+            const W = 1728;
+            const H = 1536;
+
+            const colorCanvas = document.createElement('canvas');
+            colorCanvas.width = W;
+            colorCanvas.height = H;
+            const ctx = colorCanvas.getContext('2d');
+            ctx.scale(W / 2304, H / 2048);
+
+            const bumpCanvas = document.createElement('canvas');
+            bumpCanvas.width = W;
+            bumpCanvas.height = H;
+            const bCtx = bumpCanvas.getContext('2d');
+            bCtx.scale(W / 2304, H / 2048);
+
+            const VW = 2304;
+            const VH = 2048;
+            const vCellW = VW / COLS;
+            const vCellH = VH / ROWS;
+
+            // 1. Deep Hardwood Base & Organic Fibrous Grain
+            ctx.fillStyle = palette.baseHex;
+            ctx.fillRect(0, 0, VW, VH);
+
+            bCtx.fillStyle = '#969696';
+            bCtx.fillRect(0, 0, VW, VH);
+
+            ctx.save();
+            ctx.strokeStyle = palette.grainHex;
+            ctx.globalAlpha = 0.42;
+            ctx.lineWidth = 2.0;
+            bCtx.strokeStyle = '#686868';
+            bCtx.lineWidth = 2.0;
+            ctx.beginPath();
+            bCtx.beginPath();
+            for (let i = 0; i < 420; i++) {
+                const gx = Math.random() * VW;
+                const gy = Math.random() * VH;
+                const glen = 160 + Math.random() * 420;
+                ctx.moveTo(gx, gy);
+                ctx.bezierCurveTo(gx + glen * 0.3, gy + (Math.random() - 0.5) * 14, gx + glen * 0.7, gy + (Math.random() - 0.5) * 14, gx + glen, gy);
+                bCtx.moveTo(gx, gy);
+                bCtx.lineTo(gx + glen, gy);
+            }
+            ctx.stroke();
+            bCtx.stroke();
+            ctx.restore();
+
+            // 2. Deep Chiseled Coffers for 72 Squares
+            for (let num = 1; num <= 72; num++) {
+                const { u, v } = getSquareCoords(num);
+                const cx = u * VW;
+                const cy = (1 - v) * VH;
+                const x0 = cx - vCellW / 2;
+                const y0 = cy - vCellH / 2;
+                const pad = 12;
+
+                bCtx.fillStyle = '#181818';
+                bCtx.fillRect(x0 + 4, y0 + 4, vCellW - 8, vCellH - 8);
+                bCtx.fillStyle = '#d4d4d4';
+                bCtx.fillRect(x0 + pad, y0 + pad, vCellW - pad * 2, vCellH - pad * 2);
+                bCtx.fillStyle = '#707070';
+                bCtx.fillRect(x0 + pad + 8, y0 + pad + 8, vCellW - (pad + 8) * 2, vCellH - (pad + 8) * 2);
+
+                ctx.fillStyle = 'rgba(0,0,0,0.52)';
+                ctx.fillRect(x0 + 4, y0 + 4, vCellW - 8, vCellH - 8);
+
+                ctx.fillStyle = palette.cofferHex;
+                ctx.fillRect(x0 + pad, y0 + pad, vCellW - pad * 2, vCellH - pad * 2);
+
+                if (num === 68) {
+                    const grad = ctx.createRadialGradient(cx, cy, 8, cx, cy, vCellW * 0.46);
+                    grad.addColorStop(0, 'rgba(250, 204, 21, 0.42)');
+                    grad.addColorStop(1, 'rgba(161, 98, 7, 0.08)');
+                    ctx.fillStyle = grad;
+                    ctx.fillRect(x0 + pad, y0 + pad, vCellW - pad * 2, vCellH - pad * 2);
+                }
+
+                ctx.strokeStyle = palette.inlayHex;
+                ctx.globalAlpha = num === 68 ? 0.95 : 0.45;
+                ctx.lineWidth = num === 68 ? 4 : 2;
+                ctx.strokeRect(x0 + pad + 4, y0 + pad + 4, vCellW - (pad + 4) * 2, vCellH - (pad + 4) * 2);
+                ctx.globalAlpha = 1.0;
+
+                ctx.fillStyle = palette.inlayHex;
+                ctx.globalAlpha = 0.28;
+                const cOff = pad + 12;
+                [[x0 + cOff, y0 + cOff], [x0 + vCellW - cOff, y0 + cOff], [x0 + cOff, y0 + vCellH - cOff], [x0 + vCellW - cOff, y0 + vCellH - cOff]].forEach(([px, py]) => {
+                    ctx.beginPath();
+                    ctx.arc(px, py, 4, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+                ctx.globalAlpha = 1.0;
+            }
+
+            // 3. Engraved & Brass-Inlaid SOPĀNA LADDERS
+            LADDERS.forEach(ladder => {
+                const start = getSquareCoords(ladder.from);
+                const end = getSquareCoords(ladder.to);
+                const x1 = start.u * VW, y1 = (1 - start.v) * VH;
+                const x2 = end.u * VW,   y2 = (1 - end.v) * VH;
+
+                const dx = x2 - x1;
+                const dy = y2 - y1;
+                const dist = Math.hypot(dx, dy);
+                const nx = -dy / dist;
+                const ny = dx / dist;
+                const halfW = 24;
+
+                ctx.save();
+                ctx.strokeStyle = 'rgba(0,0,0,0.68)';
+                ctx.lineWidth = 14;
+                ctx.lineCap = 'round';
+                [-1, 1].forEach(side => {
+                    ctx.beginPath();
+                    ctx.moveTo(x1 + nx * halfW * side + 3, y1 + ny * halfW * side + 3);
+                    ctx.lineTo(x2 + nx * halfW * side + 3, y2 + ny * halfW * side + 3);
+                    ctx.stroke();
+                });
+
+                bCtx.strokeStyle = '#ffffff';
+                bCtx.lineWidth = 10;
+                [-1, 1].forEach(side => {
+                    bCtx.beginPath();
+                    ctx.moveTo(x1 + nx * halfW * side, y1 + ny * halfW * side);
+                    bCtx.lineTo(x2 + nx * halfW * side, y2 + ny * halfW * side);
+                    bCtx.stroke();
+                });
+
+                const steps = Math.max(5, Math.floor(dist / 42));
+                for (let s = 1; s < steps; s++) {
+                    const t = s / steps;
+                    const rx = x1 + dx * t;
+                    const ry = y1 + dy * t;
+
+                    ctx.strokeStyle = 'rgba(0,0,0,0.65)';
+                    ctx.lineWidth = 9;
+                    ctx.beginPath();
+                    ctx.moveTo(rx - nx * halfW + 2, ry - ny * halfW + 2);
+                    ctx.lineTo(rx + nx * halfW + 2, ry + ny * halfW + 2);
+                    ctx.stroke();
+
+                    ctx.strokeStyle = '#eab308';
+                    ctx.lineWidth = 5;
+                    ctx.beginPath();
+                    ctx.moveTo(rx - nx * halfW, ry - ny * halfW);
+                    ctx.lineTo(rx + nx * halfW, ry + ny * halfW);
+                    ctx.stroke();
+
+                    bCtx.strokeStyle = '#ededed';
+                    bCtx.lineWidth = 6;
+                    bCtx.beginPath();
+                    bCtx.moveTo(rx - nx * halfW, ry - ny * halfW);
+                    bCtx.lineTo(rx + nx * halfW, ry + ny * halfW);
+                    bCtx.stroke();
+                }
+
+                const railGrad = ctx.createLinearGradient(x1, y1, x2, y2);
+                railGrad.addColorStop(0, '#ca8a04');
+                railGrad.addColorStop(0.5, '#fef08a');
+                railGrad.addColorStop(1, '#eab308');
+                ctx.strokeStyle = railGrad;
+                ctx.lineWidth = 7;
+                [-1, 1].forEach(side => {
+                    ctx.beginPath();
+                    ctx.moveTo(x1 + nx * halfW * side, y1 + ny * halfW * side);
+                    ctx.lineTo(x2 + nx * halfW * side, y2 + ny * halfW * side);
+                    ctx.stroke();
+                });
+                ctx.restore();
+            });
+
+            // 4. Deeply Carved & Inlaid NĀGA SERPENTS
+            SNAKES.forEach((snake, sIdx) => {
+                const start = getSquareCoords(snake.from);
+                const end = getSquareCoords(snake.to);
+                const x1 = start.u * VW, y1 = (1 - start.v) * VH;
+                const x2 = end.u * VW,   y2 = (1 - end.v) * VH;
+
+                const dx = x2 - x1;
+                const dy = y2 - y1;
+                const dist = Math.hypot(dx, dy);
+                const nx = -dy / dist;
+                const ny = dx / dist;
+
+                const pts = [];
+                const segs = 48;
+                const waves = 2.5 + (sIdx % 2) * 0.8;
+                const amp = Math.min(72, dist * 0.13);
+
+                for (let i = 0; i <= segs; i++) {
+                    const t = i / segs;
+                    const env = Math.sin(t * Math.PI);
+                    const sway = Math.sin(t * Math.PI * waves) * amp * env;
+                    pts.push({
+                        x: x1 + dx * t + nx * sway,
+                        y: y1 + dy * t + ny * sway
+                    });
+                }
+
+                ctx.save();
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+
+                for (let i = 0; i < pts.length - 1; i++) {
+                    const t = i / pts.length;
+                    const w = (1 - t * 0.65) * 28 + 6;
+
+                    bCtx.strokeStyle = '#141414';
+                    bCtx.lineWidth = w + 8;
+                    bCtx.beginPath();
+                    bCtx.moveTo(pts[i].x, pts[i].y);
+                    bCtx.lineTo(pts[i + 1].x, pts[i + 1].y);
+                    bCtx.stroke();
+
+                    ctx.strokeStyle = 'rgba(0,0,0,0.78)';
+                    ctx.lineWidth = w + 6;
+                    ctx.beginPath();
+                    ctx.moveTo(pts[i].x + 3, pts[i].y + 3);
+                    ctx.lineTo(pts[i + 1].x + 3, pts[i + 1].y + 3);
+                    ctx.stroke();
+                }
+
+                for (let i = 0; i < pts.length - 1; i++) {
+                    const t = i / pts.length;
+                    const w = (1 - t * 0.65) * 22 + 5;
+
+                    ctx.strokeStyle = snake.color;
+                    ctx.lineWidth = w;
+                    ctx.beginPath();
+                    ctx.moveTo(pts[i].x, pts[i].y);
+                    ctx.lineTo(pts[i + 1].x, pts[i + 1].y);
+                    ctx.stroke();
+
+                    bCtx.strokeStyle = '#c8c8c8';
+                    bCtx.lineWidth = w * 0.7;
+                    bCtx.beginPath();
+                    bCtx.moveTo(pts[i].x, pts[i].y);
+                    bCtx.lineTo(pts[i + 1].x, pts[i + 1].y);
+                    ctx.stroke();
+
+                    if (i % 3 === 0 && i > 2 && i < pts.length - 4) {
+                        ctx.fillStyle = '#d4af37';
+                        ctx.beginPath();
+                        ctx.arc(pts[i].x, pts[i].y, w * 0.22, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+
+                const ang = Math.atan2(pts[1].y - y1, pts[1].x - x1);
+                ctx.translate(x1, y1);
+                ctx.rotate(ang);
+
+                ctx.fillStyle = snake.color;
+                ctx.strokeStyle = '#d4af37';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.ellipse(0, 0, 26, 20, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.fillStyle = '#fef08a';
+                ctx.beginPath();
+                ctx.arc(-8, -7, 3.2, 0, Math.PI * 2);
+                ctx.arc(-8, 7, 3.2, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            });
+
+            // 5. Crisp Typography Inscriptions on Every Square
+            for (let num = 1; num <= 72; num++) {
+                const sq = SQUARES[num];
+                const { u, v } = getSquareCoords(num);
+                const cx = u * VW;
+                const cy = (1 - v) * VH;
+                const x0 = cx - vCellW / 2;
+                const y0 = cy - vCellH / 2;
+
+                ctx.save();
+                ctx.textAlign = 'left';
+                ctx.fillStyle = palette.inlayHex;
+                ctx.font = scriptMode === 'english' ? 'bold 26px "Playfair Display", serif' : 'bold 26px "Yatra One", serif';
+                const numLabel = scriptMode === 'english' ? String(num) : (scriptMode === 'sanskrit' ? toDevanagariDigits(num) : `${toDevanagariDigits(num)} · ${num}`);
+                ctx.fillText(numLabel, x0 + 26, y0 + 46);
+
+                ctx.textAlign = 'center';
+                ctx.shadowColor = 'rgba(0,0,0,0.92)';
+                ctx.shadowBlur = 4;
+                ctx.shadowOffsetY = 2;
+
+                if (scriptMode === 'sanskrit') {
+                    ctx.fillStyle = palette.textHex;
+                    ctx.font = '46px "Yatra One", serif';
+                    ctx.fillText(sq.sanskrit, cx, cy + 16);
+                } else if (scriptMode === 'english') {
+                    ctx.fillStyle = palette.textHex;
+                    ctx.font = 'bold 28px "Playfair Display", serif';
+                    ctx.fillText(sq.english, cx, cy + 4);
+                    ctx.fillStyle = palette.inlayHex;
+                    ctx.font = 'italic 20px "Playfair Display", serif';
+                    ctx.fillText(sq.iast, cx, cy + 34);
+                } else {
+                    ctx.fillStyle = palette.textHex;
+                    ctx.font = '38px "Yatra One", serif';
+                    ctx.fillText(sq.sanskrit, cx, cy + 2);
+                    ctx.fillStyle = '#e7d8b5';
+                    ctx.font = 'bold 21px "Playfair Display", serif';
+                    ctx.fillText(sq.english, cx, cy + 38);
+                }
+                ctx.restore();
+            }
+
+            const colorTex = new THREE.CanvasTexture(colorCanvas);
+            colorTex.anisotropy = 4;
+            const bumpTex = new THREE.CanvasTexture(bumpCanvas);
+            bumpTex.anisotropy = 2;
+
+            return { colorTex, bumpTex };
+        }
+
+        /***********************************************************************
+         * 5. PROCEDURAL AGED BONE / IVORY TEXTURE FOR VEDIC PĀŚAKA STICK DICE
+         ***********************************************************************/
+        function createBonePipTexture(pipCount) {
+            const c = document.createElement('canvas');
+            c.width = 512;
+            c.height = 128;
+            const ctx = c.getContext('2d');
+
+            const grad = ctx.createLinearGradient(0, 0, 0, 128);
+            grad.addColorStop(0, '#cfc2a9');
+            grad.addColorStop(0.5, '#f5ebd6');
+            grad.addColorStop(1, '#c4b497');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, 512, 128);
+
+            ctx.strokeStyle = 'rgba(110, 82, 50, 0.18)';
+            ctx.lineWidth = 1.5;
+            for (let i = 0; i < 45; i++) {
+                const y = Math.random() * 128;
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.bezierCurveTo(170, y + (Math.random() - 0.5) * 8, 340, y + (Math.random() - 0.5) * 8, 512, y);
+                ctx.stroke();
+            }
+
+            ctx.strokeStyle = 'rgba(92, 64, 35, 0.65)';
+            ctx.lineWidth = 6;
+            ctx.strokeRect(4, 4, 504, 120);
+
+            ctx.strokeStyle = 'rgba(180, 130, 50, 0.7)';
+            ctx.lineWidth = 3;
+            [28, 42, 470, 484].forEach(x => {
+                ctx.beginPath();
+                ctx.moveTo(x, 6);
+                ctx.lineTo(x, 122);
+                ctx.stroke();
+            });
+
+            const positions = {
+                1: [256],
+                2: [176, 336],
+                3: [136, 256, 376]
+            }[pipCount] || [256];
+
+            positions.forEach(px => {
+                const py = 64;
+                ctx.strokeStyle = '#7f1d1d';
+                ctx.lineWidth = 3.5;
+                ctx.beginPath();
+                ctx.arc(px, py, 20, 0, Math.PI * 2);
+                ctx.stroke();
+
+                ctx.strokeStyle = '#d4af37';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.arc(px, py, 13, 0, Math.PI * 2);
+                ctx.stroke();
+
+                ctx.fillStyle = '#450a0a';
+                ctx.beginPath();
+                ctx.arc(px, py, 6.5, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            const tex = new THREE.CanvasTexture(c);
+            tex.anisotropy = 4;
+            return tex;
+        }
+
+        /***********************************************************************
+         * 6. THREE.JS MONOLITHIC TEMPLE SCENE, LIGHTING & CAMERA TRACKER
+         ***********************************************************************/
+        let scene, camera, renderer, controls;
+        let boardTopMaterial, frameWoodMaterial;
+        let topSurfaceMesh;
+        let diyaFlames = [];
+        let pashaSticks = [];
+        let pashaTrayGroup;
+        let tokensGroup, particlesGroup, learningBeaconGroup;
+        let activeParticles = [];
+        let activeTweens = [];
+
+        function runSmoothTween(durationMs, onUpdate, onComplete) {
+            return new Promise(resolve => {
+                activeTweens.push({
+                    start: performance.now(),
+                    duration: durationMs,
+                    onUpdate,
+                    onComplete: () => {
+                        if (onComplete) onComplete();
+                        resolve();
+                    }
+                });
+            });
+        }
+
+        // Dynamic Camera Tracking State
+        let cameraFollowEnabled = true;
+        const camFollowPos = new THREE.Vector3(0, 17.5, 13.5);
+        const camFollowLook = new THREE.Vector3(0, 0.4, 0.5);
+        let isCameraTracking = false;
+        let screenShakeIntensity = 0;
+
+        function initThreeScene() {
+            const container = document.getElementById('canvas-container');
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x070504);
+            scene.fog = new THREE.FogExp2(0x070504, 0.018);
+
+            camera = new THREE.PerspectiveCamera(38, window.innerWidth / window.innerHeight, 0.1, 120);
+            camera.position.copy(camFollowPos);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.25));
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1.12;
+            container.appendChild(renderer.domElement);
+
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.07;
+            controls.maxPolarAngle = Math.PI / 2 - 0.06;
+            controls.minDistance = 6.5;
+            controls.maxDistance = 30;
+            controls.target.copy(camFollowLook);
+
+            controls.addEventListener('pointerdown', () => {
+                isCameraTracking = false;
+            });
+            renderer.domElement.addEventListener('pointerdown', () => {
+                isCameraTracking = false;
+            });
+            renderer.domElement.addEventListener('wheel', () => {
+                isCameraTracking = false;
+            }, { passive: true });
+
+            setupLighting();
+            buildMonolithicSanctumAndBoard();
+            buildCornerDeepastambhas();
+            buildCarvedPashaTrayAndDice();
+
+            tokensGroup = new THREE.Group();
+            scene.add(tokensGroup);
+
+            particlesGroup = new THREE.Group();
+            scene.add(particlesGroup);
+
+            buildLearningBeacon();
+            buildYakshaTokens();
+            setupBoardClickInspect();
+
+            window.addEventListener('resize', onWindowResize);
+            requestAnimationFrame(animateLoop);
+        }
+
+        function setupLighting() {
+            const ambient = new THREE.HemisphereLight(0xffdfa8, 0x120b07, 0.58);
+            scene.add(ambient);
+
+            const keyLight = new THREE.DirectionalLight(0xffe4b5, 1.45);
+            keyLight.position.set(11, 22, 15);
+            keyLight.castShadow = true;
+            keyLight.shadow.mapSize.width = 1024;
+            keyLight.shadow.mapSize.height = 1024;
+            keyLight.shadow.camera.near = 2;
+            keyLight.shadow.camera.far = 52;
+            const d = 16;
+            keyLight.shadow.camera.left = -d;
+            keyLight.shadow.camera.right = d;
+            keyLight.shadow.camera.top = d;
+            keyLight.shadow.camera.bottom = -d;
+            keyLight.shadow.bias = -0.0005;
+            scene.add(keyLight);
+
+            const rimLight = new THREE.DirectionalLight(0xd97706, 0.52);
+            rimLight.position.set(-14, 12, -14);
+            scene.add(rimLight);
+        }
+
+        function buildMonolithicSanctumAndBoard() {
+            const stoneCanvas = document.createElement('canvas');
+            stoneCanvas.width = 512;
+            stoneCanvas.height = 512;
+            const sCtx = stoneCanvas.getContext('2d');
+            sCtx.fillStyle = '#0c0908';
+            sCtx.fillRect(0, 0, 512, 512);
+            for (let i = 0; i < 3200; i++) {
+                const v = 10 + Math.floor(Math.random() * 24);
+                sCtx.fillStyle = `rgb(${v},${v - 2},${v - 3})`;
+                sCtx.fillRect(Math.random() * 512, Math.random() * 512, 3, 3);
+            }
+            const stoneTex = new THREE.CanvasTexture(stoneCanvas);
+            stoneTex.wrapS = stoneTex.wrapT = THREE.RepeatWrapping;
+            stoneTex.repeat.set(8, 8);
+
+            const sanctumFloor = new THREE.Mesh(
+                new THREE.CylinderGeometry(28, 30, 0.8, 64),
+                new THREE.MeshStandardMaterial({
+                    map: stoneTex,
+                    bumpMap: stoneTex,
+                    bumpScale: 0.04,
+                    roughness: 0.92,
+                    metalness: 0.08
+                })
+            );
+            sanctumFloor.position.y = -0.78;
+            sanctumFloor.receiveShadow = true;
+            scene.add(sanctumFloor);
+
+            const plinthMat = new THREE.MeshStandardMaterial({
+                color: 0x16110e,
+                roughness: 0.85,
+                metalness: 0.15
+            });
+            const plinth = new THREE.Mesh(new THREE.BoxGeometry(BOARD_W + 2.5, 0.38, BOARD_D + 2.5), plinthMat);
+            plinth.position.y = -0.19;
+            plinth.castShadow = true;
+            plinth.receiveShadow = true;
+            scene.add(plinth);
+
+            const palette = WOOD_PALETTES[currentWoodKey];
+            const { colorTex, bumpTex } = generateCarvedBoardTextures(currentWoodKey, currentScriptMode);
+
+            frameWoodMaterial = new THREE.MeshStandardMaterial({
+                color: palette.frameColor,
+                roughness: 0.56,
+                metalness: 0.12
+            });
+
+            const brassMat = new THREE.MeshStandardMaterial({
+                color: 0xd4af37,
+                roughness: 0.28,
+                metalness: 0.86
+            });
+
+            const slabMesh = new THREE.Mesh(new THREE.BoxGeometry(BOARD_W + 1.5, BOARD_H, BOARD_D + 1.5), frameWoodMaterial);
+            slabMesh.position.y = BOARD_H / 2;
+            slabMesh.castShadow = true;
+            slabMesh.receiveShadow = true;
+            scene.add(slabMesh);
+
+            boardTopMaterial = new THREE.MeshStandardMaterial({
+                map: colorTex,
+                bumpMap: bumpTex,
+                bumpScale: 0.072,
+                roughness: 0.44,
+                metalness: 0.10
+            });
+
+            topSurfaceMesh = new THREE.Mesh(new THREE.PlaneGeometry(BOARD_W, BOARD_D), boardTopMaterial);
+            topSurfaceMesh.rotation.x = -Math.PI / 2;
+            topSurfaceMesh.position.y = BOARD_H + 0.012;
+            topSurfaceMesh.receiveShadow = true;
+            scene.add(topSurfaceMesh);
+
+            const bThick = 0.28;
+            const bHeight = 0.16;
+            const nWall = new THREE.Mesh(new THREE.BoxGeometry(BOARD_W + 0.6, bHeight, bThick), frameWoodMaterial);
+            nWall.position.set(0, BOARD_H + bHeight / 2, -BOARD_D / 2 - bThick / 2);
+            const sWall = nWall.clone();
+            sWall.position.z = BOARD_D / 2 + bThick / 2;
+
+            const eWall = new THREE.Mesh(new THREE.BoxGeometry(bThick, bHeight, BOARD_D + 0.6), frameWoodMaterial);
+            eWall.position.set(BOARD_W / 2 + bThick / 2, BOARD_H + bHeight / 2, 0);
+            const wWall = eWall.clone();
+            wWall.position.x = -BOARD_W / 2 - bThick / 2;
+            scene.add(nWall, sWall, eWall, wWall);
+
+            for (let i = -4; i <= 4; i++) {
+                const stud1 = new THREE.Mesh(new THREE.SphereGeometry(0.08, 12, 12), brassMat);
+                stud1.scale.set(1, 0.45, 1);
+                stud1.position.set(i * 1.15, BOARD_H + bHeight + 0.01, BOARD_D / 2 + bThick / 2);
+                const stud2 = stud1.clone();
+                stud2.position.z = -BOARD_D / 2 - bThick / 2;
+                scene.add(stud1, stud2);
+            }
+
+            const toranaGroup = new THREE.Group();
+            toranaGroup.position.set(0, BOARD_H, -BOARD_D / 2 - 0.42);
+            const pillarGeo = new THREE.CylinderGeometry(0.16, 0.22, 1.35, 16);
+            const leftPillar = new THREE.Mesh(pillarGeo, frameWoodMaterial);
+            leftPillar.position.set(-1.9, 0.65, 0);
+            leftPillar.castShadow = true;
+            const rightPillar = leftPillar.clone();
+            rightPillar.position.x = 1.9;
+
+            const lintel = new THREE.Mesh(new THREE.BoxGeometry(4.5, 0.26, 0.42), frameWoodMaterial);
+            lintel.position.set(0, 1.35, 0);
+            lintel.castShadow = true;
+
+            const kalasha = new THREE.Mesh(new THREE.ConeGeometry(0.24, 0.55, 16), brassMat);
+            kalasha.position.set(0, 1.72, 0);
+            toranaGroup.add(leftPillar, rightPillar, lintel, kalasha);
+            scene.add(toranaGroup);
+        }
+
+        /***********************************************************************
+         * 7. SCULPTED 4-CORNER DEEPASTAMBHA OIL LAMPS & CUSTOM SHADER FLAME
+         ***********************************************************************/
+        const flameVertexShader = `
+            uniform float uTime;
+            uniform float uSeed;
+            varying vec2 vUv;
+            varying float vHeight;
+            void main() {
+                vUv = uv;
+                vec3 pos = position;
+                float h = clamp(pos.y / 0.42, 0.0, 1.0);
+                vHeight = h;
+
+                float windX = sin(uTime * 6.5 + uSeed + h * 4.2) * 0.055 * pow(h, 1.4);
+                float windZ = cos(uTime * 5.2 + uSeed * 1.7 + h * 3.8) * 0.045 * pow(h, 1.4);
+                pos.x += windX;
+                pos.z += windZ;
+
+                float pinch = 1.0 - 0.55 * pow(h, 1.6);
+                pos.x *= pinch;
+                pos.z *= pinch;
+
+                gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+            }
+        `;
+
+        const flameFragmentShader = `
+            varying vec2 vUv;
+            varying float vHeight;
+            void main() {
+                vec3 blueBase = vec3(0.18, 0.38, 1.0);
+                vec3 whiteCore = vec3(1.0, 0.98, 0.86);
+                vec3 saffronMid = vec3(1.0, 0.58, 0.06);
+                vec3 crimsonTip = vec3(0.85, 0.12, 0.02);
+
+                vec3 col = mix(blueBase, whiteCore, smoothstep(0.0, 0.24, vHeight));
+                col = mix(col, saffronMid, smoothstep(0.24, 0.68, vHeight));
+                col = mix(col, crimsonTip, smoothstep(0.68, 1.0, vHeight));
+
+                float alpha = (1.0 - smoothstep(0.75, 1.0, vHeight)) * 0.95;
+                gl_FragColor = vec4(col, alpha);
+            }
+        `;
+
+        function buildCornerDeepastambhas() {
+            const tarnishedBrassMat = new THREE.MeshStandardMaterial({
+                color: 0xb8860b,
+                roughness: 0.34,
+                metalness: 0.85
+            });
+
+            const darkBronzeBaseMat = new THREE.MeshStandardMaterial({
+                color: 0x3d2817,
+                roughness: 0.52,
+                metalness: 0.68
+            });
+
+            const gheeOilMat = new THREE.MeshStandardMaterial({
+                color: 0x451a03,
+                roughness: 0.08,
+                metalness: 0.25
+            });
+
+            const lathePoints = [
+                new THREE.Vector2(0.00, 0.00),
+                new THREE.Vector2(0.46, 0.00),
+                new THREE.Vector2(0.44, 0.10),
+                new THREE.Vector2(0.30, 0.18),
+                new THREE.Vector2(0.16, 0.28),
+                new THREE.Vector2(0.24, 0.48),
+                new THREE.Vector2(0.13, 0.66),
+                new THREE.Vector2(0.20, 0.82),
+                new THREE.Vector2(0.12, 0.96),
+                new THREE.Vector2(0.48, 1.14),
+                new THREE.Vector2(0.52, 1.24),
+                new THREE.Vector2(0.40, 1.24),
+                new THREE.Vector2(0.36, 1.12),
+                new THREE.Vector2(0.00, 1.10)
+            ];
+            const stambhaGeo = new THREE.LatheGeometry(lathePoints, 28);
+
+            const cornerCoords = [
+                [-BOARD_W / 2 - 0.46, -BOARD_D / 2 - 0.46],
+                [ BOARD_W / 2 + 0.46, -BOARD_D / 2 - 0.46],
+                [-BOARD_W / 2 - 0.46,  BOARD_D / 2 + 0.46],
+                [ BOARD_W / 2 + 0.46,  BOARD_D / 2 + 0.46]
+            ];
+
+            cornerCoords.forEach(([x, z], idx) => {
+                const stambha = new THREE.Group();
+                stambha.position.set(x, BOARD_H, z);
+
+                const plinth = new THREE.Mesh(new THREE.CylinderGeometry(0.50, 0.56, 0.14, 8), darkBronzeBaseMat);
+                plinth.position.y = 0.07;
+                plinth.castShadow = true;
+                plinth.receiveShadow = true;
+                stambha.add(plinth);
+
+                const body = new THREE.Mesh(stambhaGeo, tarnishedBrassMat);
+                body.position.y = 0.08;
+                body.castShadow = true;
+                body.receiveShadow = true;
+                stambha.add(body);
+
+                const petalGeo = new THREE.SphereGeometry(0.09, 8, 8);
+                petalGeo.scale(0.9, 0.45, 1.6);
+                for (let p = 0; p < 12; p++) {
+                    const ang = (p / 12) * Math.PI * 2;
+                    const petal = new THREE.Mesh(petalGeo, tarnishedBrassMat);
+                    petal.position.set(Math.cos(ang) * 0.45, 1.22, Math.sin(ang) * 0.45);
+                    petal.rotation.y = -ang + Math.PI / 2;
+                    petal.rotation.x = 0.25;
+                    stambha.add(petal);
+                }
+
+                const oilDisk = new THREE.Mesh(new THREE.CylinderGeometry(0.39, 0.39, 0.04, 20), gheeOilMat);
+                oilDisk.position.y = 1.15;
+                stambha.add(oilDisk);
+
+                const toCenterAngle = Math.atan2(-x, -z);
+                const nozzleDirX = Math.sin(toCenterAngle);
+                const nozzleDirZ = Math.cos(toCenterAngle);
+
+                const spout = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.09, 0.26, 10), tarnishedBrassMat);
+                spout.rotation.x = Math.PI / 2 - 0.35;
+                spout.rotation.y = toCenterAngle;
+                spout.position.set(nozzleDirX * 0.38, 1.22, nozzleDirZ * 0.38);
+                stambha.add(spout);
+
+                const wick = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.022, 0.028, 0.18, 8),
+                    new THREE.MeshBasicMaterial({ color: 0x291d12 })
+                );
+                wick.position.set(nozzleDirX * 0.44, 1.27, nozzleDirZ * 0.44);
+                stambha.add(wick);
+
+                const ember = new THREE.Mesh(
+                    new THREE.SphereGeometry(0.032, 8, 8),
+                    new THREE.MeshBasicMaterial({ color: 0xff4500 })
+                );
+                ember.position.set(nozzleDirX * 0.45, 1.33, nozzleDirZ * 0.45);
+                stambha.add(ember);
+
+                const flameGeo = new THREE.SphereGeometry(0.13, 12, 14);
+                flameGeo.translate(0, 0.13, 0);
+                flameGeo.scale(1.0, 2.2, 1.0);
+
+                const flameMat = new THREE.ShaderMaterial({
+                    vertexShader: flameVertexShader,
+                    fragmentShader: flameFragmentShader,
+                    uniforms: {
+                        uTime: { value: 0 },
+                        uSeed: { value: idx * 2.15 }
+                    },
+                    transparent: true,
+                    depthWrite: false,
+                    blending: THREE.AdditiveBlending
+                });
+
+                const flameMesh = new THREE.Mesh(flameGeo, flameMat);
+                flameMesh.position.set(nozzleDirX * 0.45, 1.32, nozzleDirZ * 0.45);
+                stambha.add(flameMesh);
+
+                const glowGeo = new THREE.SphereGeometry(0.26, 10, 10);
+                const glowMat = new THREE.MeshBasicMaterial({
+                    color: 0xff9900,
+                    transparent: true,
+                    opacity: 0.22,
+                    blending: THREE.AdditiveBlending,
+                    depthWrite: false
+                });
+                const glowMesh = new THREE.Mesh(glowGeo, glowMat);
+                glowMesh.position.set(nozzleDirX * 0.45, 1.48, nozzleDirZ * 0.45);
+                stambha.add(glowMesh);
+
+                diyaFlames.push({
+                    flameMat,
+                    glowMesh,
+                    seed: idx * 2.15,
+                    worldOrigin: new THREE.Vector3(
+                        x + nozzleDirX * 0.45,
+                        BOARD_H + 0.08 + 1.55,
+                        z + nozzleDirZ * 0.45
+                    )
+                });
+
+                scene.add(stambha);
+            });
+        }
+
+        function buildCarvedPashaTrayAndDice() {
+            pashaTrayGroup = new THREE.Group();
+            pashaTrayGroup.position.set(BOARD_W / 2 + 2.35, 0, 2.1);
+
+            const trayBase = new THREE.Mesh(
+                new THREE.BoxGeometry(2.6, 0.28, 3.8),
+                frameWoodMaterial
+            );
+            trayBase.position.y = 0.14;
+            trayBase.castShadow = true;
+            trayBase.receiveShadow = true;
+            pashaTrayGroup.add(trayBase);
+
+            const feltBed = new THREE.Mesh(
+                new THREE.PlaneGeometry(2.15, 3.35),
+                new THREE.MeshStandardMaterial({ color: 0x3b0a0a, roughness: 0.88 })
+            );
+            feltBed.rotation.x = -Math.PI / 2;
+            feltBed.position.y = 0.29;
+            feltBed.receiveShadow = true;
+            pashaTrayGroup.add(feltBed);
+
+            const m1 = new THREE.MeshStandardMaterial({ map: createBonePipTexture(1), roughness: 0.34, metalness: 0.06 });
+            const m2 = new THREE.MeshStandardMaterial({ map: createBonePipTexture(2), roughness: 0.34, metalness: 0.06 });
+            const m3 = new THREE.MeshStandardMaterial({ map: createBonePipTexture(3), roughness: 0.34, metalness: 0.06 });
+            const mCap = new THREE.MeshStandardMaterial({ color: 0xb48a48, roughness: 0.35, metalness: 0.65 });
+
+            const stickMaterials = [mCap, mCap, m1, m2, m3, m1];
+            const stickGeo = new THREE.BoxGeometry(1.52, 0.32, 0.32);
+
+            pashaSticks = [];
+            for (let i = 0; i < 2; i++) {
+                const holder = new THREE.Group();
+                const pivot = new THREE.Group();
+                const body = new THREE.Mesh(stickGeo, stickMaterials);
+                body.castShadow = true;
+                body.receiveShadow = true;
+
+                pivot.rotation.y = Math.PI / 2 + (i === 0 ? 0.05 : -0.05);
+                pivot.add(body);
+                holder.add(pivot);
+
+                const laneX = i === 0 ? -0.58 : 0.58;
+                holder.position.set(laneX, 0.45, i === 0 ? -0.18 : 0.18);
+                holder.userData = { body, pivot, laneX };
+
+                pashaTrayGroup.add(holder);
+                pashaSticks.push(holder);
+            }
+            pashaTrayGroup.userData.sticks = pashaSticks;
+
+            scene.add(pashaTrayGroup);
+        }
+
+        /***********************************************************************
+         * 8. SCULPTED 3D YAKSHA FIGURINES
+         ***********************************************************************/
+        const YAKSHA_DEFS = [
+            { id: 0, name: 'Kubera',   color: 0xd97706, metalness: 0.85, roughness: 0.24, gemColor: 0xfef08a, dotHex: '#f59e0b' },
+            { id: 1, name: 'Śaṅkha',   color: 0x0d9488, metalness: 0.58, roughness: 0.38, gemColor: 0x5eead4, dotHex: '#14b8a6' },
+            { id: 2, name: 'Padma',    color: 0xb91c1c, metalness: 0.32, roughness: 0.42, gemColor: 0xfca5a5, dotHex: '#ef4444' },
+            { id: 3, name: 'Guhyaka',  color: 0xe7e5e4, metalness: 0.18, roughness: 0.28, gemColor: 0xfde047, dotHex: '#e7e5e4' }
+        ];
+
+        let playerStates = [
+            { id: 0, role: 'human', square: 1, mesh: null },
+            { id: 1, role: 'ai',    square: 1, mesh: null },
+            { id: 2, role: 'off',   square: 1, mesh: null },
+            { id: 3, role: 'off',   square: 1, mesh: null }
+        ];
+
+        function createYakshaFigurineMesh(def) {
+            const group = new THREE.Group();
+
+            const bodyMat = new THREE.MeshStandardMaterial({
+                color: def.color,
+                metalness: def.metalness,
+                roughness: def.roughness
+            });
+
+            const goldMat = new THREE.MeshStandardMaterial({
+                color: 0xd4af37,
+                metalness: 0.90,
+                roughness: 0.22
+            });
+
+            const gemMat = new THREE.MeshStandardMaterial({
+                color: def.gemColor,
+                emissive: def.gemColor,
+                emissiveIntensity: 0.45,
+                roughness: 0.15
+            });
+
+            // 1. Heavy Bronze Plinth & 12-Petalled Padma Pedestal
+            const plinth = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.39, 0.11, 20), goldMat);
+            plinth.position.y = 0.055;
+            plinth.castShadow = true;
+            plinth.receiveShadow = true;
+            group.add(plinth);
+
+            const petalGeo = new THREE.SphereGeometry(0.09, 8, 8);
+            petalGeo.scale(0.85, 0.45, 1.75);
+            for (let p = 0; p < 12; p++) {
+                const ang = (p / 12) * Math.PI * 2;
+                const petal = new THREE.Mesh(petalGeo, bodyMat);
+                petal.position.set(Math.cos(ang) * 0.28, 0.12, Math.sin(ang) * 0.28);
+                petal.rotation.y = -ang + Math.PI / 2;
+                petal.rotation.x = 0.28;
+                group.add(petal);
+            }
+
+            // 2. Cross-Legged Asana & Auspicious Tundila Belly
+            const legs = new THREE.Mesh(new THREE.TorusGeometry(0.18, 0.085, 10, 20), bodyMat);
+            legs.rotation.x = Math.PI / 2;
+            legs.position.y = 0.20;
+            legs.castShadow = true;
+            group.add(legs);
+
+            const belly = new THREE.Mesh(new THREE.SphereGeometry(0.22, 18, 16), bodyMat);
+            belly.scale.set(1.06, 0.92, 1.10);
+            belly.position.set(0, 0.38, 0.02);
+            belly.castShadow = true;
+            group.add(belly);
+
+            const chest = new THREE.Mesh(new THREE.CylinderGeometry(0.19, 0.17, 0.20, 14), bodyMat);
+            chest.position.y = 0.56;
+            chest.castShadow = true;
+            group.add(chest);
+
+            const torque = new THREE.Mesh(new THREE.TorusGeometry(0.15, 0.028, 8, 20), goldMat);
+            torque.rotation.x = Math.PI / 2 + 0.18;
+            torque.position.set(0, 0.64, 0.02);
+            group.add(torque);
+
+            // 3. Arms Holding Glowing Chintamani Jewel
+            [-1, 1].forEach(side => {
+                const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.05, 0.26, 10), bodyMat);
+                arm.position.set(side * 0.21, 0.48, 0.06);
+                arm.rotation.z = side * 0.38;
+                arm.rotation.x = -0.45;
+                group.add(arm);
+            });
+
+            const jewel = new THREE.Mesh(new THREE.OctahedronGeometry(0.085, 0), gemMat);
+            jewel.position.set(0, 0.45, 0.23);
+            group.add(jewel);
+
+            // 4. Head, Kundala Earrings & Tiered Karanda Mukuta Crown
+            const head = new THREE.Mesh(new THREE.SphereGeometry(0.155, 16, 16), bodyMat);
+            head.position.y = 0.80;
+            head.castShadow = true;
+            group.add(head);
+
+            [-1, 1].forEach(side => {
+                const ring = new THREE.Mesh(new THREE.TorusGeometry(0.045, 0.014, 8, 14), goldMat);
+                ring.position.set(side * 0.16, 0.77, 0);
+                group.add(ring);
+            });
+
+            [0, 1, 2].forEach(tier => {
+                const cRing = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.11 - tier * 0.028, 0.13 - tier * 0.028, 0.08, 14),
+                    goldMat
+                );
+                cRing.position.y = 0.95 + tier * 0.075;
+                cRing.castShadow = true;
+                group.add(cRing);
+            });
+
+            const finial = new THREE.Mesh(new THREE.ConeGeometry(0.055, 0.13, 10), goldMat);
+            finial.position.y = 1.24;
+            group.add(finial);
+
+            // 5. Prabhamandala Halo Behind Head
+            const haloMat = new THREE.MeshStandardMaterial({
+                color: 0xd4af37,
+                emissive: def.gemColor,
+                emissiveIntensity: 0.22,
+                roughness: 0.25,
+                metalness: 0.88
+            });
+            const halo = new THREE.Mesh(new THREE.TorusGeometry(0.24, 0.02, 8, 24), haloMat);
+            halo.position.set(0, 0.92, -0.10);
+            group.add(halo);
+
+            group.userData = { jewel, halo, haloMat, gemMat };
+            return group;
+        }
+
+        function buildYakshaTokens() {
+            while (tokensGroup.children.length) {
+                tokensGroup.remove(tokensGroup.children[0]);
+            }
+
+            playerStates.forEach((p, idx) => {
+                if (p.role === 'off') {
+                    p.mesh = null;
+                    return;
+                }
+                const mesh = createYakshaFigurineMesh(YAKSHA_DEFS[idx]);
+                p.mesh = mesh;
+                tokensGroup.add(mesh);
+            });
+
+            positionTokensOnBoard();
+        }
+
+        function getSquareTokenWorldPosition(squareNum, playerIndex) {
+            const { worldX, worldZ } = getSquareCoords(squareNum);
+            const activeOnSquare = playerStates.filter(p => p.role !== 'off' && p.square === squareNum);
+            let offsetX = 0, offsetZ = 0;
+            if (activeOnSquare.length > 1) {
+                const slotIdx = activeOnSquare.findIndex(p => p.id === playerIndex);
+                const angle = (slotIdx / activeOnSquare.length) * Math.PI * 2 + 0.5;
+                offsetX = Math.cos(angle) * 0.26;
+                offsetZ = Math.sin(angle) * 0.26;
+            }
+            return new THREE.Vector3(worldX + offsetX, BOARD_H + 0.02, worldZ + offsetZ);
+        }
+
+        function positionTokensOnBoard() {
+            playerStates.forEach(p => {
+                if (!p.mesh) return;
+                p.mesh.visible = !isLearningMode;
+                const target = getSquareTokenWorldPosition(p.square, p.id);
+                p.mesh.position.copy(target);
+            });
+        }
+
+        /***********************************************************************
+         * 9. LUMINOUS PADMA BEACON FOR GUIDED LEARNING MODE
+         ***********************************************************************/
+        function buildLearningBeacon() {
+            learningBeaconGroup = new THREE.Group();
+            learningBeaconGroup.visible = false;
+
+            const goldMat = new THREE.MeshStandardMaterial({
+                color: 0xfef08a,
+                emissive: 0xd97706,
+                emissiveIntensity: 0.65,
+                roughness: 0.2,
+                metalness: 0.85
+            });
+
+            const outerRing = new THREE.Mesh(new THREE.RingGeometry(0.46, 0.54, 32), goldMat);
+            outerRing.rotation.x = -Math.PI / 2;
+            outerRing.position.y = 0.02;
+            learningBeaconGroup.add(outerRing);
+
+            const innerRing = new THREE.Mesh(new THREE.RingGeometry(0.28, 0.34, 8), goldMat);
+            innerRing.rotation.x = -Math.PI / 2;
+            innerRing.position.y = 0.025;
+            learningBeaconGroup.add(innerRing);
+
+            const crystal = new THREE.Mesh(new THREE.OctahedronGeometry(0.18, 0), goldMat);
+            crystal.position.y = 0.52;
+            learningBeaconGroup.add(crystal);
+
+            const beamMat = new THREE.MeshBasicMaterial({
+                color: 0xfacc15,
+                transparent: true,
+                opacity: 0.14,
+                blending: THREE.AdditiveBlending,
+                depthWrite: false,
+                side: THREE.DoubleSide
+            });
+            const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.48, 1.4, 24, 1, true), beamMat);
+            beam.position.y = 0.72;
+            learningBeaconGroup.add(beam);
+
+            learningBeaconGroup.userData = { outerRing, innerRing, crystal, beam };
+            scene.add(learningBeaconGroup);
+        }
+
+        /***********************************************************************
+         * 10. PARTICLE POOL & CAMERA FOCUS HELPERS
+         ***********************************************************************/
+        const SHARED_PARTICLE_GEO = new THREE.OctahedronGeometry(0.055, 0);
+        const PARTICLE_MAT_POOL = [];
+
+        function getPooledParticleMat(colorHex) {
+            const mat = PARTICLE_MAT_POOL.pop() || new THREE.MeshBasicMaterial({ transparent: true, opacity: 1 });
+            mat.color.setHex(colorHex);
+            mat.opacity = 1;
+            return mat;
+        }
+
+        function spawnImpactDustOrParticles(worldPos, colorHex, count = 10, radial = true) {
+            if (activeParticles.length > 75) return;
+            for (let i = 0; i < count; i++) {
+                const pMesh = new THREE.Mesh(SHARED_PARTICLE_GEO, getPooledParticleMat(colorHex));
+                pMesh.position.copy(worldPos);
+                pMesh.position.y += 0.08;
+
+                const ang = (i / count) * Math.PI * 2 + Math.random() * 0.4;
+                const spd = radial ? (0.03 + Math.random() * 0.045) : (0.015 + Math.random() * 0.025);
+                particlesGroup.add(pMesh);
+
+                activeParticles.push({
+                    mesh: pMesh,
+                    vx: Math.cos(ang) * spd,
+                    vy: radial ? (0.02 + Math.random() * 0.035) : (0.045 + Math.random() * 0.055),
+                    vz: Math.sin(ang) * spd,
+                    life: 1.0
+                });
+            }
+        }
+
+        function focusCameraOnPoint(targetVec, heightOffset = 7.2, zDistance = 6.6) {
+            if (!cameraFollowEnabled) return;
+            isCameraTracking = true;
+            camFollowLook.set(targetVec.x * 0.78, BOARD_H + 0.35, targetVec.z * 0.82);
+            camFollowPos.set(targetVec.x * 0.58, BOARD_H + heightOffset, targetVec.z * 0.82 + zDistance);
+        }
+
+        /***********************************************************************
+         * 11. WEIGHTED DICE ROLL, TOKEN HOPS & KARMIC SLIDES
+         ***********************************************************************/
+        async function animateBonePashaRoll(v1, v2) {
+            if (cameraFollowEnabled) {
+                isCameraTracking = true;
+                camFollowLook.set(4.2, 0.5, 1.8);
+                camFollowPos.set(3.2, 11.5, 10.2);
+            }
+
+            const rotMap = { 1: 0, 2: Math.PI, 3: -Math.PI / 2 };
+            const targetRot1 = rotMap[v1] ?? 0;
+            const targetRot2 = rotMap[v2] ?? 0;
+
+            let bounce1Played = false;
+            let bounce2Played = false;
+            const sticks = (pashaTrayGroup && pashaTrayGroup.userData.sticks) || pashaSticks;
+
+            await runSmoothTween(660, (t) => {
+                const easeOut = 1 - Math.pow(1 - t, 3);
+
+                let bounceY = 0;
+                if (t < 0.45) {
+                    const bt = t / 0.45;
+                    bounceY = Math.sin(bt * Math.PI) * 1.35;
+                } else if (t < 0.78) {
+                    if (!bounce1Played) {
+                        bounce1Played = true;
+                        audio.playBoneDiceBounce(1.0);
+                    }
+                    const bt = (t - 0.45) / 0.33;
+                    bounceY = Math.sin(bt * Math.PI) * 0.48;
+                } else {
+                    if (!bounce2Played) {
+                        bounce2Played = true;
+                        audio.playBoneDiceBounce(0.5);
+                    }
+                    const bt = (t - 0.78) / 0.22;
+                    bounceY = Math.sin(bt * Math.PI) * 0.14;
+                }
+
+                for (let idx = 0; idx < sticks.length; idx++) {
+                    const stick = sticks[idx];
+                    const finalRotX = (idx === 0 ? targetRot1 : targetRot2);
+                    const laneX = stick.userData.laneX;
+                    const body = stick.userData.body;
+                    const pivot = stick.userData.pivot;
+
+                    const fullTurns = (idx === 0 ? 3 : 4) * Math.PI * 2;
+                    const lateralBounce = (idx === 0 ? -1 : 1) * Math.sin(t * Math.PI * 2) * 0.08 * (1 - t);
+
+                    stick.position.x = laneX + lateralBounce;
+                    stick.position.y = 0.45 + bounceY;
+                    stick.position.z = Math.sin(t * Math.PI) * (idx === 0 ? -0.58 : 0.54) + (idx === 0 ? -0.15 : 0.15) * t;
+
+                    body.rotation.set((1 - easeOut) * fullTurns + finalRotX, 0, 0);
+                    pivot.rotation.set(
+                        0,
+                        Math.PI / 2 + (idx === 0 ? 0.05 : -0.05) + Math.sin(t * Math.PI * 2) * 0.11 * (1 - t),
+                        Math.sin(t * Math.PI * 3) * 0.16 * (1 - t)
+                    );
+                }
+            }, () => {
+                audio.playBoneDiceBounce(0.22);
+                sticks[0].position.set(sticks[0].userData.laneX, 0.45, -0.16);
+                sticks[0].userData.body.rotation.set(targetRot1, 0, 0);
+                sticks[0].userData.pivot.rotation.set(0, Math.PI / 2 + 0.05, 0);
+
+                sticks[1].position.set(sticks[1].userData.laneX, 0.45, 0.16);
+                sticks[1].userData.body.rotation.set(targetRot2, 0, 0);
+                sticks[1].userData.pivot.rotation.set(0, Math.PI / 2 - 0.05, 0);
+            });
+
+            await runSmoothTween(180, () => {});
+        }
+
+        async function animateWeightedStepHop(mesh, fromPos, toPos, stepIdx) {
+            focusCameraOnPoint(toPos, 6.8, 6.2);
+            let impactTriggered = false;
+
+            await runSmoothTween(310, (t) => {
+                if (t < 0.74) {
+                    const ht = t / 0.74;
+                    const ease = ht < 0.5 ? 2 * ht * ht : 1 - Math.pow(-2 * ht + 2, 2) / 2;
+                    mesh.position.lerpVectors(fromPos, toPos, ease);
+                    mesh.position.y = BOARD_H + 0.02 + Math.sin(Math.pow(ht, 0.85) * Math.PI) * 0.85;
+                    mesh.rotation.x = Math.sin(ht * Math.PI) * 0.16;
+                    mesh.scale.set(0.96, 1.05, 0.96);
+                } else {
+                    if (!impactTriggered) {
+                        impactTriggered = true;
+                        mesh.position.copy(toPos);
+                        mesh.rotation.x = 0;
+                        audio.playHeavyTokenThud(stepIdx);
+                        spawnImpactDustOrParticles(toPos, 0xd4af37, 7, true);
+                        screenShakeIntensity = 0.035;
+                    }
+                    const it = (t - 0.74) / 0.26;
+                    const squash = Math.sin(it * Math.PI) * 0.15;
+                    mesh.scale.set(1 + squash, 1 - squash * 1.1, 1 + squash);
+                }
+            }, () => {
+                mesh.position.copy(toPos);
+                mesh.rotation.set(0, 0, 0);
+                mesh.scale.set(1, 1, 1);
+            });
+        }
+
+        async function animateVirtueClimb(mesh, fromSq, toSq, playerIndex) {
+            const startPos = mesh.position.clone();
+            const endPos = getSquareTokenWorldPosition(toSq, playerIndex);
+            audio.playLadderAscent();
+
+            await runSmoothTween(1180, (t) => {
+                const ease = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+                mesh.position.lerpVectors(startPos, endPos, ease);
+                mesh.position.y += Math.sin(t * Math.PI) * 1.55;
+                mesh.rotation.y = t * Math.PI * 4;
+
+                focusCameraOnPoint(mesh.position, 7.2, 6.5);
+
+                if (Math.random() < 0.3) {
+                    spawnImpactDustOrParticles(mesh.position, 0xfacc15, 1, false);
+                }
+            }, () => {
+                mesh.position.copy(endPos);
+                mesh.rotation.y = 0;
+                audio.playHeavyTokenThud(4);
+                spawnImpactDustOrParticles(endPos, 0xfef08a, 16, false);
+                screenShakeIntensity = 0.06;
+            });
+        }
+
+        async function animateViceSlide(mesh, snakeObj, playerIndex) {
+            const startCoord = getSquareCoords(snakeObj.from);
+            const endCoord = getSquareCoords(snakeObj.to);
+            const endPos = getSquareTokenWorldPosition(snakeObj.to, playerIndex);
+
+            const dx = endCoord.worldX - startCoord.worldX;
+            const dz = endCoord.worldZ - startCoord.worldZ;
+            const dist = Math.hypot(dx, dz);
+            const nx = -dz / dist;
+            const nz = dx / dist;
+
+            audio.playSnakeDescent();
+            screenShakeIntensity = 0.16;
+
+            await runSmoothTween(1220, (t) => {
+                const ease = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+                const env = Math.sin(ease * Math.PI);
+                const sway = Math.sin(ease * Math.PI * 3.0) * Math.min(1.1, dist * 0.14) * env;
+
+                mesh.position.x = startCoord.worldX + dx * ease + nx * sway;
+                mesh.position.z = startCoord.worldZ + dz * ease + nz * sway;
+                mesh.position.y = BOARD_H + 0.05;
+                mesh.rotation.z = Math.sin(t * Math.PI * 10) * 0.2;
+
+                focusCameraOnPoint(mesh.position, 6.8, 6.2);
+
+                if (Math.random() < 0.28) {
+                    spawnImpactDustOrParticles(mesh.position, 0xdc2626, 1, false);
+                }
+            }, () => {
+                mesh.position.copy(endPos);
+                mesh.rotation.set(0, 0, 0);
+                audio.playHeavyTokenThud(0);
+                spawnImpactDustOrParticles(endPos, 0x991b1b, 14, true);
+            });
+        }
+
+        /***********************************************************************
+         * 12. CORE TURN ENGINE, TOP-ROW KARMIC CYCLE & LEARNING MODE
+         ***********************************************************************/
+        let activeTurnIndex = 0;
+        let isTurnBusy = false;
+        let gameEnded = false;
+        let isLearningMode = false;
+        let learningSquare = 1;
+        let autoTourTimer = null;
+
+        let soulsBannerTimer = null;
+        function showSoulsBanner(type, kicker, mainTitle, subtitle, duration = 2300) {
+            const banner = document.getElementById('souls-banner');
+            const kickerEl = document.getElementById('souls-kicker');
+            const mainEl = document.getElementById('souls-main');
+            const subEl = document.getElementById('souls-sub');
+
+            kickerEl.textContent = kicker;
+            mainEl.textContent = mainTitle;
+            subEl.textContent = subtitle;
+
+            if (type === 'virtue') {
+                mainEl.className = 'font-souls text-2xl sm:text-5xl font-bold souls-title-scale uppercase text-amber-300 drop-shadow-[0_0_25px_rgba(250,204,21,0.75)]';
+            } else if (type === 'vice') {
+                mainEl.className = 'font-souls text-2xl sm:text-5xl font-bold souls-title-scale uppercase text-red-500 drop-shadow-[0_0_25px_rgba(220,38,38,0.85)]';
+            } else {
+                mainEl.className = 'font-souls text-2xl sm:text-5xl font-bold souls-title-scale uppercase text-amber-100 drop-shadow-[0_6px_20px_rgba(0,0,0,0.95)]';
+            }
+
+            banner.classList.remove('opacity-0');
+            banner.classList.add('show');
+
+            if (soulsBannerTimer) clearTimeout(soulsBannerTimer);
+            soulsBannerTimer = setTimeout(() => {
+                banner.classList.add('opacity-0');
+                banner.classList.remove('show');
+            }, duration);
+        }
+
+        function syncMinimalHud() {
+            const p = playerStates[activeTurnIndex];
+            if (!p || p.role === 'off') return;
+            const def = YAKSHA_DEFS[p.id];
+            const sq = SQUARES[p.square];
+            const isEng = (currentScriptMode === 'english');
+
+            document.getElementById('hud-token-dot').style.backgroundColor = def.dotHex;
+            document.getElementById('hud-player-name').textContent = def.name;
+            document.getElementById('hud-square-label').textContent = isEng
+                ? `Square ${p.square} · ${sq.english}`
+                : `Square ${p.square} · ${sq.iast}`;
+
+            const castBtn = document.getElementById('btn-cast-dice');
+            if (gameEnded) {
+                castBtn.disabled = true;
+                castBtn.textContent = isEng ? 'Liberation Attained' : 'Moksha Attained';
+            } else if (p.role === 'ai') {
+                castBtn.disabled = true;
+                castBtn.textContent = `${def.name} Casting...`;
+            } else {
+                castBtn.disabled = isTurnBusy;
+                castBtn.textContent = isEng ? 'Hold & Release Dice' : 'Hold & Release Pāśaka';
+            }
+        }
+
+        function advanceToNextPilgrim() {
+            if (gameEnded) return;
+            for (let i = 1; i <= 4; i++) {
+                const candidate = (activeTurnIndex + i) % 4;
+                if (playerStates[candidate].role !== 'off') {
+                    activeTurnIndex = candidate;
+                    break;
+                }
+            }
+            isTurnBusy = false;
+            syncMinimalHud();
+
+            const activeP = playerStates[activeTurnIndex];
+            if (activeP.mesh) {
+                focusCameraOnPoint(activeP.mesh.position, 7.2, 6.6);
+            }
+
+            if (activeP.role === 'ai' && !gameEnded) {
+                setTimeout(() => executePilgrimTurn(), 650);
+            }
+        }
+
+        function secureRandomDie3() {
+            if (window.crypto && window.crypto.getRandomValues) {
+                const buf = new Uint32Array(1);
+                window.crypto.getRandomValues(buf);
+                return (buf[0] % 3) + 1;
+            }
+            return Math.floor(Math.random() * 3) + 1;
+        }
+
+        async function executePilgrimTurn() {
+            if (isTurnBusy || gameEnded || isLearningMode) return;
+            isTurnBusy = true;
+            syncMinimalHud();
+
+            const player = playerStates[activeTurnIndex];
+            const def = YAKSHA_DEFS[player.id];
+            const isEng = (currentScriptMode === 'english');
+
+            const d1 = secureRandomDie3();
+            const d2 = secureRandomDie3();
+            const rollTotal = d1 + d2;
+
+            await animateBonePashaRoll(d1, d2);
+
+            document.getElementById('dice-val-dev').textContent = formatNum(rollTotal);
+            document.getElementById('dice-val-num').textContent = `${formatNum(d1)} + ${formatNum(d2)} = ${formatNum(rollTotal)}`;
+
+            const targetSq = Math.min(72, player.square + rollTotal);
+
+            for (let s = player.square + 1; s <= targetSq; s++) {
+                const fromPos = player.mesh.position.clone();
+                player.square = s;
+                const toPos = getSquareTokenWorldPosition(s, player.id);
+                await animateWeightedStepHop(player.mesh, fromPos, toPos, s);
+                positionTokensOnBoard();
+            }
+
+            const landed = SQUARES[player.square];
+
+            if (landed.ladder) {
+                const dest = landed.ladder.to;
+                const destSq = SQUARES[dest];
+                showSoulsBanner(
+                    'virtue',
+                    `Virtue Embraced · ${landed.ladder.name}`,
+                    isEng ? 'VIRTUE ASCENSION' : 'PUNYA ASCENSION',
+                    isEng
+                        ? `${landed.english} (${landed.num}) → ${destSq.english} (${dest})`
+                        : `${landed.sanskrit} (${toDevanagariDigits(landed.num)}) → ${destSq.sanskrit} (${toDevanagariDigits(dest)})`,
+                    2500
+                );
+                await animateVirtueClimb(player.mesh, player.square, dest, player.id);
+                player.square = dest;
+                positionTokensOnBoard();
+            } else if (landed.snake) {
+                const dest = landed.snake.to;
+                const destSq = SQUARES[dest];
+                showSoulsBanner(
+                    'vice',
+                    `Fetter of Karma · ${landed.snake.name}`,
+                    'CONSUMED BY VICE',
+                    isEng
+                        ? `${landed.english} (${landed.num}) → ${destSq.english} (${dest})`
+                        : `${landed.sanskrit} (${toDevanagariDigits(landed.num)}) → ${destSq.sanskrit} (${toDevanagariDigits(dest)})`,
+                    2500
+                );
+                await animateViceSlide(player.mesh, landed.snake, player.id);
+                player.square = dest;
+                positionTokensOnBoard();
+            }
+
+            if (player.square === 68) {
+                gameEnded = true;
+                isTurnBusy = false;
+                audio.playLadderAscent();
+                audio.playRealmBell();
+                spawnImpactDustOrParticles(player.mesh.position, 0xfacc15, 45, false);
+                showSoulsBanner(
+                    'virtue',
+                    `${def.name} transcends the wheel of Saṃsāra`,
+                    isEng ? 'SUPREME LIBERATION ATTAINED' : 'MOKSHA ATTAINED',
+                    isEng ? 'Square 68 · Vaikuṇṭha (Moksha)' : 'वैकुण्ठ · परमपद प्राप्तम्',
+                    6500
+                );
+                syncMinimalHud();
+                return;
+            }
+
+            await runSmoothTween(220, () => {});
+            advanceToNextPilgrim();
+        }
+
+        /***********************************************************************
+         * 13. GUIDED DARŚANA LEARNING MODE CONTROLLER & SACRED ICONOGRAPHY
+         ***********************************************************************/
+        function getSacredSvgIcon(sq) {
+            if (sq.num === 68) {
+                return `
+                    <svg class="w-9 h-9 text-yellow-300" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.2">
+                        <circle cx="32" cy="32" r="24" stroke-dasharray="4 3"/>
+                        <circle cx="32" cy="32" r="14"/>
+                        <circle cx="32" cy="32" r="4" fill="currentColor"/>
+                        <path d="M32 4v56M4 32h56M12 12l40 40M52 12L12 52"/>
+                    </svg>
+                `;
+            }
+            if (sq.ladder) {
+                return `
+                    <svg class="w-9 h-9 text-amber-300" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.4">
+                        <path d="M22 56V12M42 56V12"/>
+                        <path d="M22 46h20M22 36h20M22 26h20M22 18h20"/>
+                        <path d="M32 6l-6 6h12l-6-6z" fill="currentColor"/>
+                    </svg>
+                `;
+            }
+            if (sq.snake) {
+                return `
+                    <svg class="w-9 h-9 text-red-400" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.4">
+                        <path d="M24 14c8-6 18 0 14 10s-18 8-14 18 18 6 12 16"/>
+                        <ellipse cx="24" cy="14" rx="7" ry="5" fill="currentColor"/>
+                    </svg>
+                `;
+            }
+            return `
+                <svg class="w-9 h-9 text-amber-200/90" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M32 12c6 10 10 18 0 28-10-10-6-18 0-28z"/>
+                    <path d="M32 40c10-8 18-6 20 4-10 4-16 2-20-4z"/>
+                    <path d="M32 40c-10-8-18-6-20 4 10 4 16 2 20-4z"/>
+                    <circle cx="32" cy="48" r="3" fill="currentColor"/>
+                </svg>
+            `;
+        }
+
+        function updateLearningStep(sqNum, playSound = true) {
+            learningSquare = Math.max(1, Math.min(72, sqNum));
+            const sq = SQUARES[learningSquare];
+            const isEng = (currentScriptMode === 'english');
+
+            document.getElementById('learn-slider').value = String(learningSquare);
+            document.getElementById('learn-top-badge').textContent = isEng
+                ? `Guided Learning Path · Square ${learningSquare} of 72`
+                : `Darśana Learning Path · ${formatNum(learningSquare)} / ${formatNum(72)}`;
+
+            document.getElementById('learn-loka-pill').textContent = `Square ${sq.num} of 72 · Sacred Path`;
+
+            const badgeEl = document.getElementById('learn-type-badge');
+            if (sq.num === 68) {
+                badgeEl.textContent = 'Supreme Goal';
+                badgeEl.className = 'text-[10px] font-serif-ui uppercase tracking-widest px-2.5 py-0.5 rounded-full border border-yellow-300 bg-yellow-400/20 text-yellow-200';
+            } else if (sq.ladder) {
+                badgeEl.textContent = 'Virtue Ladder ↑';
+                badgeEl.className = 'text-[10px] font-serif-ui uppercase tracking-widest px-2.5 py-0.5 rounded-full border border-amber-400/60 bg-amber-500/20 text-amber-200';
+            } else if (sq.snake) {
+                badgeEl.textContent = 'Karmic Snake ↓';
+                badgeEl.className = 'text-[10px] font-serif-ui uppercase tracking-widest px-2.5 py-0.5 rounded-full border border-red-400/60 bg-red-500/20 text-red-200';
+            } else {
+                badgeEl.textContent = 'Karmic State';
+                badgeEl.className = 'text-[10px] font-serif-ui uppercase tracking-widest px-2.5 py-0.5 rounded-full border border-amber-500/35 bg-stone-900/80 text-stone-300';
+            }
+
+            document.getElementById('learn-main-title').textContent = `${sq.num} · ${sq.english} (${sq.iast})`;
+            const devEl = document.getElementById('learn-devanagari');
+            if (isEng) {
+                devEl.classList.add('hidden');
+            } else {
+                devEl.classList.remove('hidden');
+                devEl.textContent = `${toDevanagariDigits(sq.num)} · ${sq.sanskrit}`;
+            }
+
+            document.getElementById('learn-icon-box').innerHTML = getSacredSvgIcon(sq);
+            document.getElementById('learn-body-text').textContent = WISDOM_NOTES[sq.num] || sq.lore;
+
+            const jumpWrap = document.getElementById('learn-jump-wrap');
+            const jumpBtn = document.getElementById('btn-learn-jump');
+            if (sq.ladder) {
+                const dest = SQUARES[sq.ladder.to];
+                jumpWrap.classList.remove('hidden');
+                jumpBtn.className = 'px-3.5 py-1.5 rounded-lg text-xs font-serif-ui font-semibold border border-amber-400/60 bg-amber-500/20 hover:bg-amber-500/35 text-amber-100 transition flex items-center gap-2';
+                jumpBtn.innerHTML = `<span>↑ Follow Virtue Ladder to Square ${dest.num} (${dest.english})</span>`;
+                jumpBtn.onclick = () => {
+                    audio.playLadderAscent();
+                    updateLearningStep(dest.num, false);
+                };
+            } else if (sq.snake) {
+                const dest = SQUARES[sq.snake.to];
+                jumpWrap.classList.remove('hidden');
+                jumpBtn.className = 'px-3.5 py-1.5 rounded-lg text-xs font-serif-ui font-semibold border border-red-400/60 bg-red-950/60 hover:bg-red-900/70 text-red-200 transition flex items-center gap-2';
+                jumpBtn.innerHTML = `<span>↓ Follow Karmic Serpent to Square ${dest.num} (${dest.english})</span>`;
+                jumpBtn.onclick = () => {
+                    audio.playSnakeDescent();
+                    updateLearningStep(dest.num, false);
+                };
+            } else {
+                jumpWrap.classList.add('hidden');
+            }
+
+            const { worldX, worldZ } = getSquareCoords(learningSquare);
+            if (learningBeaconGroup) {
+                learningBeaconGroup.visible = true;
+                learningBeaconGroup.position.set(worldX, BOARD_H + 0.02, worldZ);
+            }
+
+            const targetPos = new THREE.Vector3(worldX, BOARD_H + 0.1, worldZ);
+            isCameraTracking = true;
+            camFollowLook.set(targetPos.x * 0.85, BOARD_H + 0.25, targetPos.z * 0.88);
+            camFollowPos.set(targetPos.x * 0.68, BOARD_H + 5.8, targetPos.z * 0.88 + 5.2);
+
+            if (playSound) audio.playHeavyTokenThud(learningSquare);
+        }
+
+        function stopAutoTour() {
+            if (autoTourTimer) {
+                clearInterval(autoTourTimer);
+                autoTourTimer = null;
+            }
+            const btn = document.getElementById('btn-learn-autotour');
+            if (btn) btn.textContent = '▶ Auto-Tour';
+        }
+
+        /***********************************************************************
+         * 14. RAYCAST SQUARE INSPECTION & UI EVENT WIRING
+         ***********************************************************************/
+        let inspectHideTimeout = null;
+
+        function showInspectPill(num, autoHide = true) {
+            const sq = SQUARES[num];
+            if (!sq) return;
+            const isEng = (currentScriptMode === 'english');
+            const pill = document.getElementById('inspect-pill');
+            document.getElementById('inspect-kicker').textContent = sq.ladder
+                ? `Square ${sq.num} · Virtue Gate`
+                : (sq.snake ? `Square ${sq.num} · Karmic Serpent` : `Square ${sq.num} · Sacred Path`);
+            document.getElementById('inspect-title').textContent = isEng ? `${sq.num} · ${sq.english}` : `${toDevanagariDigits(sq.num)} · ${sq.sanskrit}`;
+            document.getElementById('inspect-sub').textContent = isEng ? sq.iast : `${sq.iast} — ${sq.english}`;
+            document.getElementById('inspect-lore').textContent = WISDOM_NOTES[sq.num] || sq.lore;
+
+            const linkEl = document.getElementById('inspect-link');
+            if (sq.ladder) {
+                linkEl.textContent = `↑ Ascends to Square ${sq.ladder.to} (${SQUARES[sq.ladder.to].english})`;
+            } else if (sq.snake) {
+                linkEl.textContent = `↓ Slides to Square ${sq.snake.to} (${SQUARES[sq.snake.to].english})`;
+            } else if (sq.num === 68) {
+                linkEl.textContent = `★ Vaikuṇṭha — Supreme Liberation`;
+            } else {
+                linkEl.textContent = '';
+            }
+
+            pill.classList.remove('opacity-0', 'translate-y-2');
+            if (inspectHideTimeout) clearTimeout(inspectHideTimeout);
+            if (autoHide) {
+                inspectHideTimeout = setTimeout(() => {
+                    pill.classList.add('opacity-0', 'translate-y-2');
+                }, 6500);
+            }
+        }
+
+        function setupBoardClickInspect() {
+            const raycaster = new THREE.Raycaster();
+            const pointer = new THREE.Vector2();
+            let downX = 0, downY = 0;
+
+            window.addEventListener('pointerdown', e => {
+                downX = e.clientX;
+                downY = e.clientY;
+            });
+
+            window.addEventListener('pointerup', e => {
+                if (Math.hypot(e.clientX - downX, e.clientY - downY) > 6) return;
+                if (e.target !== renderer.domElement) return;
+
+                pointer.x = (e.clientX / window.innerWidth) * 2 - 1;
+                pointer.y = -(e.clientY / window.innerHeight) * 2 + 1;
+                raycaster.setFromCamera(pointer, camera);
+
+                const hits = raycaster.intersectObject(topSurfaceMesh);
+                if (hits.length > 0 && hits[0].uv) {
+                    const uv = hits[0].uv;
+                    const col = Math.floor(uv.x * COLS);
+                    const row = Math.floor(uv.y * ROWS);
+                    const colInRow = (row % 2 === 0) ? col : (COLS - 1 - col);
+                    const num = row * COLS + colInRow + 1;
+                    if (num >= 1 && num <= 72) {
+                        if (isLearningMode) {
+                            stopAutoTour();
+                            updateLearningStep(num, true);
+                        } else {
+                            showInspectPill(num, true);
+                        }
+                    }
+                }
+            });
+        }
+
+        function rebuildBoardMaterials() {
+            const palette = WOOD_PALETTES[currentWoodKey];
+            const { colorTex, bumpTex } = generateCarvedBoardTextures(currentWoodKey, currentScriptMode);
+            if (boardTopMaterial.map) boardTopMaterial.map.dispose();
+            if (boardTopMaterial.bumpMap) boardTopMaterial.bumpMap.dispose();
+            boardTopMaterial.map = colorTex;
+            boardTopMaterial.bumpMap = bumpTex;
+            boardTopMaterial.needsUpdate = true;
+            frameWoodMaterial.color.setHex(palette.frameColor);
+
+            if (isLearningMode) {
+                updateLearningStep(learningSquare, false);
+            } else {
+                syncMinimalHud();
+            }
+        }
+
+        // Token Selection Screen Slot Cycling
+        const ROLE_CYCLE = ['human', 'ai', 'off'];
+        document.querySelectorAll('.token-slot').forEach(slot => {
+            slot.addEventListener('click', () => {
+                const idx = parseInt(slot.dataset.player, 10);
+                const current = playerStates[idx].role;
+                let nextRole = ROLE_CYCLE[(ROLE_CYCLE.indexOf(current) + 1) % ROLE_CYCLE.length];
+
+                const activeCount = playerStates.filter((p, i) => (i === idx ? nextRole !== 'off' : p.role !== 'off')).length;
+                if (activeCount === 0) nextRole = 'human';
+
+                playerStates[idx].role = nextRole;
+                const label = slot.querySelector('.role-label');
+                if (nextRole === 'human') {
+                    slot.classList.add('active');
+                    label.textContent = 'Human';
+                    label.className = 'role-label text-xs font-serif-ui italic text-amber-300/90 px-2.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-400/30';
+                } else if (nextRole === 'ai') {
+                    slot.classList.add('active');
+                    label.textContent = 'Spirit AI';
+                    label.className = 'role-label text-xs font-serif-ui italic text-teal-300/90 px-2.5 py-0.5 rounded-full bg-teal-500/15 border border-teal-400/30';
+                } else {
+                    slot.classList.remove('active');
+                    label.textContent = 'Off';
+                    label.className = 'role-label text-xs font-serif-ui italic text-stone-500 px-2.5 py-0.5 rounded-full bg-stone-800/60 border border-stone-700/40';
+                }
+            });
+        });
+
+        // Begin Pilgrimage Button
+        document.getElementById('btn-begin').addEventListener('click', () => {
+            audio.init();
+            isLearningMode = false;
+            stopAutoTour();
+            if (learningBeaconGroup) learningBeaconGroup.visible = false;
+            document.getElementById('learning-overlay').classList.add('hidden');
+            document.getElementById('learning-overlay').classList.remove('flex');
+
+            playerStates.forEach(p => {
+                p.square = 1;
+            });
+            gameEnded = false;
+            isTurnBusy = false;
+
+            const firstActive = playerStates.find(p => p.role !== 'off');
+            activeTurnIndex = firstActive ? firstActive.id : 0;
+
+            buildYakshaTokens();
+            syncMinimalHud();
+
+            document.getElementById('start-modal').classList.add('opacity-0', 'pointer-events-none');
+            document.getElementById('game-hud').classList.remove('opacity-0', 'pointer-events-none');
+
+            const startPos = getSquareTokenWorldPosition(1, activeTurnIndex);
+            focusCameraOnPoint(startPos, 7.5, 6.8);
+
+            if (playerStates[activeTurnIndex].role === 'ai') {
+                setTimeout(() => executePilgrimTurn(), 900);
+            }
+        });
+
+        // Guided Learning Path Controls
+        document.getElementById('btn-start-learn').addEventListener('click', () => {
+            audio.init();
+            isLearningMode = true;
+            stopAutoTour();
+            positionTokensOnBoard();
+
+            document.getElementById('start-modal').classList.add('opacity-0', 'pointer-events-none');
+            document.getElementById('game-hud').classList.add('opacity-0', 'pointer-events-none');
+            const learnOverlay = document.getElementById('learning-overlay');
+            learnOverlay.classList.remove('hidden');
+            learnOverlay.classList.add('flex');
+
+            updateLearningStep(1, true);
+        });
+
+        document.getElementById('btn-learn-prev').addEventListener('click', () => {
+            stopAutoTour();
+            updateLearningStep(learningSquare > 1 ? learningSquare - 1 : 72, true);
+        });
+
+        document.getElementById('btn-learn-next').addEventListener('click', () => {
+            stopAutoTour();
+            updateLearningStep(learningSquare < 72 ? learningSquare + 1 : 1, true);
+        });
+
+        document.getElementById('learn-slider').addEventListener('input', (e) => {
+            stopAutoTour();
+            updateLearningStep(parseInt(e.target.value, 10), false);
+        });
+
+        document.getElementById('btn-learn-autotour').addEventListener('click', () => {
+            if (autoTourTimer) {
+                stopAutoTour();
+            } else {
+                document.getElementById('btn-learn-autotour').textContent = '⏸ Pause Tour';
+                autoTourTimer = setInterval(() => {
+                    const nextSq = learningSquare < 72 ? learningSquare + 1 : 1;
+                    updateLearningStep(nextSq, true);
+                }, 3800);
+            }
+        });
+
+        document.getElementById('btn-learn-settings').addEventListener('click', () => {
+            const modal = document.getElementById('settings-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        });
+
+        document.getElementById('btn-exit-learn').addEventListener('click', () => {
+            stopAutoTour();
+            isLearningMode = false;
+            if (learningBeaconGroup) learningBeaconGroup.visible = false;
+            positionTokensOnBoard();
+            document.getElementById('learning-overlay').classList.add('hidden');
+            document.getElementById('learning-overlay').classList.remove('flex');
+            document.getElementById('start-modal').classList.remove('opacity-0', 'pointer-events-none');
+        });
+
+        // Interactive Prana Breath & Shake Dice Casting Mechanic
+        let isChargingPrana = false;
+        let pranaPower = 0;
+        let pranaDirection = 1;
+        let lastShakeRattleTime = 0;
+
+        const castBtnEl = document.getElementById('btn-cast-dice');
+        const pranaMeterWrap = document.getElementById('prana-meter-wrap');
+
+        function startPranaCharge(e) {
+            if (e && e.cancelable) e.preventDefault();
+            if (isTurnBusy || gameEnded || isLearningMode) return;
+            const activeP = playerStates[activeTurnIndex];
+            if (!activeP || activeP.role !== 'human') return;
+
+            audio.init();
+            isChargingPrana = true;
+            pranaPower = 0.15;
+            pranaDirection = 1;
+            pranaMeterWrap.classList.remove('opacity-0');
+
+            if (cameraFollowEnabled) {
+                isCameraTracking = true;
+                camFollowLook.set(4.2, 0.6, 1.8);
+                camFollowPos.set(3.4, 10.2, 9.6);
+            }
+        }
+
+        function releasePranaCharge(e) {
+            if (!isChargingPrana) return;
+            if (e && e.cancelable) e.preventDefault();
+            isChargingPrana = false;
+            pranaMeterWrap.classList.add('opacity-0');
+            executePilgrimTurn();
+        }
+
+        castBtnEl.addEventListener('pointerdown', startPranaCharge);
+        window.addEventListener('pointerup', releasePranaCharge);
+
+        // Non-Intrusive Lore Button
+        document.getElementById('btn-lore-toggle').addEventListener('click', () => {
+            const pill = document.getElementById('inspect-pill');
+            const p = playerStates[activeTurnIndex];
+            if (!p) return;
+            if (!pill.classList.contains('opacity-0')) {
+                pill.classList.add('opacity-0', 'translate-y-2');
+            } else {
+                showInspectPill(p.square, false);
+            }
+        });
+
+        document.getElementById('btn-close-inspect').addEventListener('click', () => {
+            document.getElementById('inspect-pill').classList.add('opacity-0', 'translate-y-2');
+        });
+
+        document.getElementById('btn-cam-reset').addEventListener('click', () => {
+            const p = playerStates[activeTurnIndex];
+            if (p && p.mesh) {
+                cameraFollowEnabled = true;
+                document.getElementById('toggle-cam-follow').checked = true;
+                focusCameraOnPoint(p.mesh.position, 7.2, 6.6);
+            }
+        });
+
+        // Settings Modal
+        const settingsModal = document.getElementById('settings-modal');
+        document.getElementById('btn-open-settings').addEventListener('click', () => {
+            settingsModal.classList.remove('hidden');
+            settingsModal.classList.add('flex');
+        });
+        document.getElementById('btn-close-settings').addEventListener('click', () => {
+            settingsModal.classList.add('hidden');
+            settingsModal.classList.remove('flex');
+        });
+
+        document.querySelectorAll('.script-opt').forEach(btn => {
+            btn.addEventListener('click', () => {
+                currentScriptMode = btn.dataset.script;
+                document.querySelectorAll('.script-opt').forEach(b => {
+                    b.className = 'script-opt py-2 rounded-lg text-xs border border-amber-500/25 bg-stone-900/70 text-stone-300';
+                });
+                btn.className = 'script-opt py-2 rounded-lg text-xs border border-amber-400 bg-amber-500/20 text-amber-100 font-semibold';
+                rebuildBoardMaterials();
+            });
+        });
+
+        document.querySelectorAll('.wood-opt').forEach(btn => {
+            btn.addEventListener('click', () => {
+                currentWoodKey = btn.dataset.wood;
+                document.querySelectorAll('.wood-opt').forEach(b => {
+                    b.className = 'wood-opt py-2 px-3 rounded-lg text-xs border border-amber-500/25 bg-stone-900/70 text-stone-300 text-left';
+                });
+                btn.className = 'wood-opt py-2 px-3 rounded-lg text-xs border border-amber-400 bg-amber-500/20 text-amber-100 font-semibold text-left';
+                rebuildBoardMaterials();
+            });
+        });
+
+        document.getElementById('toggle-cam-follow').addEventListener('change', e => {
+            cameraFollowEnabled = e.target.checked;
+        });
+        document.getElementById('toggle-sfx').addEventListener('change', e => {
+            audio.sfxEnabled = e.target.checked;
+        });
+        document.getElementById('toggle-drone').addEventListener('change', e => {
+            audio.toggleDrone(e.target.checked);
+        });
+
+        document.getElementById('btn-change-pilgrims').addEventListener('click', () => {
+            stopAutoTour();
+            isLearningMode = false;
+            if (learningBeaconGroup) learningBeaconGroup.visible = false;
+            document.getElementById('learning-overlay').classList.add('hidden');
+            document.getElementById('learning-overlay').classList.remove('flex');
+            settingsModal.classList.add('hidden');
+            settingsModal.classList.remove('flex');
+            document.getElementById('start-modal').classList.remove('opacity-0', 'pointer-events-none');
+        });
+
+        document.getElementById('btn-reset-match').addEventListener('click', () => {
+            settingsModal.classList.add('hidden');
+            settingsModal.classList.remove('flex');
+            playerStates.forEach(p => {
+                p.square = 1;
+            });
+            gameEnded = false;
+            isTurnBusy = false;
+            const firstActive = playerStates.find(p => p.role !== 'off');
+            activeTurnIndex = firstActive ? firstActive.id : 0;
+            positionTokensOnBoard();
+            syncMinimalHud();
+            const startPos = getSquareTokenWorldPosition(1, activeTurnIndex);
+            focusCameraOnPoint(startPos, 7.5, 6.8);
+        });
+
+        /***********************************************************************
+         * 15. MAIN RENDER & ANIMATION LOOP (UNIFIED DELTA-TIME ENGINE)
+         ***********************************************************************/
+        let lastFrameTime = performance.now();
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animateLoop(now) {
+            requestAnimationFrame(animateLoop);
+            const dt = Math.min(0.05, Math.max(0.001, (now - lastFrameTime) * 0.001));
+            lastFrameTime = now;
+            const time = now * 0.001;
+            const frameScale = dt * 60;
+
+            // 0. Process Unified Tween Queue
+            for (let i = activeTweens.length - 1; i >= 0; i--) {
+                const tw = activeTweens[i];
+                const t = Math.min(1, (now - tw.start) / tw.duration);
+                tw.onUpdate(t);
+                if (t >= 1) {
+                    activeTweens.splice(i, 1);
+                    tw.onComplete();
+                }
+            }
+
+            // 1. Update Custom Shader Diya Flames & Glowing Halo Sprites
+            for (let i = 0; i < diyaFlames.length; i++) {
+                const df = diyaFlames[i];
+                df.flameMat.uniforms.uTime.value = time;
+                const pulse = 1.0 + Math.sin(time * 9.0 + df.seed) * 0.08;
+                df.glowMesh.scale.set(pulse, pulse, pulse);
+            }
+
+            // 1b. Interactive Prāṇa Breath & Bone Dice Levitation Shake
+            if (isChargingPrana && pashaTrayGroup && pashaTrayGroup.userData.sticks) {
+                pranaPower += 0.022 * pranaDirection * frameScale;
+                if (pranaPower >= 1) { pranaPower = 1; pranaDirection = -1; }
+                if (pranaPower <= 0) { pranaPower = 0; pranaDirection = 1; }
+
+                const bar = document.getElementById('prana-gauge-bar');
+                if (bar) bar.style.width = `${(pranaPower * 100).toFixed(1)}%`;
+
+                pashaTrayGroup.userData.sticks.forEach((stick, idx) => {
+                    const sign = idx === 0 ? -1 : 1;
+                    const body = stick.userData.body;
+                    const pivot = stick.userData.pivot;
+                    const clatterGap = 0.24 + Math.abs(Math.sin(time * 18)) * 0.36;
+                    stick.position.x = sign * clatterGap;
+                    stick.position.y = 0.65 + pranaPower * 0.65 + Math.sin(time * 28 + idx) * 0.08;
+                    stick.position.z = sign * 0.16 + Math.cos(time * 20 + idx) * 0.12;
+
+                    body.rotation.x += (0.24 + pranaPower * 0.26) * frameScale;
+                    pivot.rotation.z = Math.sin(time * 24 + idx * 2) * 0.25;
+                    pivot.rotation.y = Math.PI / 2 + sign * 0.08;
+                });
+
+                if (now - lastShakeRattleTime > 115) {
+                    lastShakeRattleTime = now;
+                    audio.playBoneDiceBounce(0.28 + pranaPower * 0.35);
+                }
+            }
+
+            // 2. Subtle Yaksha Gem Pulse
+            for (let idx = 0; idx < playerStates.length; idx++) {
+                const p = playerStates[idx];
+                if (p.mesh && p.mesh.visible && p.mesh.userData && p.mesh.userData.jewel) {
+                    p.mesh.userData.jewel.rotation.y = time * 1.6 + idx;
+                }
+            }
+
+            // 3. Animate Luminous Golden Padma Beacon in Learning Mode
+            if (isLearningMode && learningBeaconGroup && learningBeaconGroup.visible) {
+                const lb = learningBeaconGroup.userData;
+                lb.outerRing.rotation.z = time * 0.65;
+                lb.innerRing.rotation.z = -time * 1.1;
+                lb.crystal.rotation.y = time * 1.8;
+                lb.crystal.position.y = 0.52 + Math.sin(time * 3.2) * 0.08;
+                lb.beam.material.opacity = 0.13 + Math.sin(time * 4.0) * 0.04;
+            }
+
+            // 4. Frame-Rate-Independent Exponential Camera Follow
+            if (isCameraTracking) {
+                const posAlpha = 1 - Math.exp(-5.0 * dt);
+                const lookAlpha = 1 - Math.exp(-6.5 * dt);
+                camera.position.lerp(camFollowPos, posAlpha);
+                controls.target.lerp(camFollowLook, lookAlpha);
+
+                if (camera.position.distanceToSquared(camFollowPos) < 0.002 &&
+                    controls.target.distanceToSquared(camFollowLook) < 0.002) {
+                    isCameraTracking = false;
+                }
+            }
+
+            controls.update();
+
+            // 5. Tactile Impact Micro-Tremor
+            let shakeX = 0, shakeY = 0;
+            if (screenShakeIntensity > 0.0005) {
+                shakeX = (Math.random() - 0.5) * screenShakeIntensity;
+                shakeY = (Math.random() - 0.5) * screenShakeIntensity * 0.7;
+                camera.position.x += shakeX;
+                camera.position.y += shakeY;
+                screenShakeIntensity *= Math.pow(0.82, frameScale);
+            }
+
+            // 6. Update Dust & Ember Particles
+            for (let i = activeParticles.length - 1; i >= 0; i--) {
+                const p = activeParticles[i];
+                p.mesh.position.x += p.vx * frameScale;
+                p.mesh.position.y += p.vy * frameScale;
+                p.mesh.position.z += p.vz * frameScale;
+                p.mesh.rotation.x += 0.07 * frameScale;
+                p.mesh.rotation.y += 0.07 * frameScale;
+                p.life -= 0.028 * frameScale;
+                p.mesh.material.opacity = Math.max(0, p.life);
+                if (p.life <= 0) {
+                    particlesGroup.remove(p.mesh);
+                    PARTICLE_MAT_POOL.push(p.mesh.material);
+                    activeParticles.splice(i, 1);
+                }
+            }
+
+            renderer.render(scene, camera);
+
+            if (shakeX !== 0 || shakeY !== 0) {
+                camera.position.x -= shakeX;
+                camera.position.y -= shakeY;
+            }
+        }
+
+        document.fonts.ready.then(() => {
+            initThreeScene();
+        });
+    </script>
+</body>
+</html>
