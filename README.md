@@ -6,7 +6,7 @@
 
 <p align="center">
   <strong>The ancient 72-square Indian board game of karma, virtue, and spiritual liberation.</strong><br>
-  <em>Reconstructed, designed, and engineered as a standalone Android APK by <strong>Gauransh Bansal</strong>.</em>
+  <em>Reconstructed and packaged as a standalone Android APK.</em>
 </p>
 
 <p align="center">
@@ -20,24 +20,43 @@
 <p align="center">
   <a href="https://gauranshbansal.github.io/gyan-chaupar-game/"><strong>🌐 Official Download Page</strong></a> &nbsp;•&nbsp;
   <a href="https://github.com/gauranshbansal/gyan-chaupar-game/raw/main/assets/Gyan-Chaupar.apk"><strong>⬇ Direct APK Download</strong></a> &nbsp;•&nbsp;
-  <a href="https://www.linkedin.com/in/gauransh-bansal-a71223239/"><strong>Connect on LinkedIn</strong></a>
+  <a href="https://www.linkedin.com/in/gauransh-bansal-a71223239/"><strong>LinkedIn</strong></a> &nbsp;•&nbsp;
+  <a href="https://github.com/gauranshbansal"><strong>GitHub</strong></a>
 </p>
 
 ---
 
-## 🛠️ The Build: Why & How I Made This
+## 🌿 How This Was Built (The Honest Version)
 
-Hi, I’m **Gauransh Bansal**. I built this project to bridge creative computing, physics-informed simulations, and forgotten cultural systems.
+The spark was simple: I was scrolling Instagram and stumbled across [this reel](https://www.instagram.com/reel/Dey_O80MbTK/?rpxt=aWE1OXh1eWFpcG1r) explaining how *Snakes and Ladders* was originally a deeply philosophical 72-square Vedic/Jain game called **Gyan Chaupar (Moksha Patam)**. The history fascinated me, and my immediate reaction was: *let's actually build it*.
 
-Most people know *Snakes and Ladders*, but few realize its ancestor—**Gyan Chaupar (Moksha Patam)**—was a mathematically deliberate 72-square philosophical map. When 19th-century colonial toy makers adapted it, they flattened it into a 100-square kids' game, stripped away the Sanskrit virtues, and discarded its mechanical logic.
+I have been building personal utility apps for a while—like `monyp`, a custom app I made to motivate my own savings habits—and I’ve spent years working with storytelling, visual design, and video production. Naturally, I thought: *"I have the design and narrative experience down; making this game will be a breeze."*
 
-Rather than just writing about the history, **I engineered an authentic mobile adaptation from scratch**:
+**It was not a cakewalk.**
 
-- **Real-Time 3D Board Engine:** Engineered an interactive 3D carved board with dynamic camera orbiting, custom lighting passes, and mobile-optimized geometry running at a locked 60 FPS on Android devices.
-- **Probabilistic Cowrie Dice Physics:** Replaced uniform flat 1–6 dice with authentic 6-cowrie shell mechanics, modeling non-uniform binomial probability distributions ($n=6, p \approx 0.5$) for authentic gameplay.
-- **Rule Engine & State Machine:** Programmed the 72-square non-linear state machine including virtue ascents (*Dharma, Daya, Bhakti*), vice falls (*Krodha, Lobha, Moha*), and 4 asymmetric Yaksha guardian archetypes (*Kubera, Śaṅkha, Padma, Guhyaka*).
-- **Zero-Bloat Standalone Android APK:** Packaged the entire runtime and local assets into a self-contained 22.1 MB Android APK requiring zero network calls, zero tracking libraries, and zero ad frameworks.
-- **Art Direction & Editorial Design:** Curated the visual identity, carved token textures, and tactile poster aesthetic honoring 18th-century Rajasthani and Mewar manuscript art.
+I’m not a software engineer by degree. I’m an engineer by curiosity and passion—meaning when an idea grabs hold of me, I will learn whatever math, code, or tools are necessary to bring it into reality.
+
+### Leveraging AI With Clear Intent
+To bridge the gap between concept and code, I heavily leveraged AI tools for technical research, boilerplate generation, and debugging. 
+
+AI handled the syntax and accelerated the research, but:
+- The **creative direction and philosophy** were guided by hand.
+- The **game architecture, rules, and 72-square karmic state transitions** had to be researched, verified, and tuned.
+- The **carved 3D visual aesthetic, textures, and Yaksha lore** came from deliberate artistic choices.
+- Knowing **how to prompt, steer, debug, and connect fragmented code into a real, working Android binary** took hours of iteration and problem-solving.
+
+Even with AI as an amplifier, wrestling with WebGL coordinate spaces, 6-cowrie shell probability models, Android WebView asset paths, and zero-bloat APK packaging was a humbling technical grind. But the product is here, it’s 100% offline, and I’ll let the game speak for itself.
+
+---
+
+## 📜 The Core Concept
+
+Centuries before it was commercialized into *Snakes & Ladders* in 1892, **Gyan Chaupar** was a contemplative map of existence:
+- **72 Cosmic Squares** tracing the soul's journey through worldly existence (*Samsara*) toward liberation (*Vaikuntha / Moksha*).
+- **Ladders of Virtue (*Dharma Soapan*)**: Virtues like *Daya* (Compassion), *Tapa* (Ascetic discipline), and *Bhakti* (Devotion) propel the player upward.
+- **Serpents of Karma (*Sarpa Dansha*)**: Vices like *Krodha* (Wrath), *Lobha* (Greed), and *Irshya* (Envy) swallow the player back to lower planes.
+- **Four Yaksha Guardians**: Choose your patron guardian—*Kubera*, *Śaṅkha*, *Padma*, or *Guhyaka*.
+- **Three Play Modes**: *Classic Patam*, *Yama's Vacation*, and *Shakti Mode*.
 
 ---
 
@@ -49,7 +68,7 @@ Rather than just writing about the history, **I engineered an authentic mobile a
 - **File Size:** `22.12 MB` (23,195,692 bytes)
 - **Target OS:** Android 8.0 (Oreo) through Android 15+
 - **Architecture:** Universal (ARM64, ARMv7, x86_64)
-- **Permissions:** None required (Runs purely in a local, offline sandbox)
+- **Permissions:** None required (Runs in an offline, self-contained sandbox)
 - **Network Access:** Zero (100% playable offline, even in Airplane Mode)
 
 ### Step-by-Step Sideload
@@ -57,7 +76,7 @@ Rather than just writing about the history, **I engineered an authentic mobile a
 2. Tap the downloaded file in your browser or File Manager.
 3. If prompted with *"For your security, your phone is not allowed to install unknown apps"*:
    - Tap **Settings** → toggle **Allow from this source**.
-4. Tap **Install** and begin your journey across the 72 squares.
+4. Tap **Install** and launch the game.
 
 ---
 
@@ -69,7 +88,7 @@ All official builds of `Gyan-Chaupar.apk` distributed here match this exact SHA-
 BC498A0449F7C327D17DC2C02E8968142A5216D5DA1815126C9C97F1DED011C8
 ```
 
-Verify it locally in your terminal:
+Verify it locally in terminal:
 ```bash
 # Windows PowerShell
 Get-FileHash -Path assets/Gyan-Chaupar.apk -Algorithm SHA256
@@ -82,22 +101,12 @@ sha256sum assets/Gyan-Chaupar.apk
 
 ## 🏛️ The Four Yaksha Guardians
 
-| Glyph | Guardian | Epithet | Mechanical Specialty |
+| Glyph | Guardian | Epithet | Mechanical Trait |
 |:---:|---|---|---|
 | **कु** | **Kubera** | Lord of True Wealth | Resilience across squares of greed (*Lobha*) and temporal attachment. |
-| **शं** | **Śaṅkha** | The Sacred Resonance | Primordial sound; dispels serpentine delusions in lower planes. |
+| **शं** | **Śaṅkha** | The Sacred Resonance | Divine conch sound; dispels serpentine delusions in lower planes. |
 | **प** | **Padma** | Lotus Purity | Untainted ascension; bonus progress across virtue ladders. |
-| **गु** | **Guhyaka** | Master of Hidden Ways | Mystic knowledge of karmic shortcuts and cowrie manipulation. |
-
----
-
-## 💻 Tech Stack
-
-- **Mobile Runtime:** Android SDK (WebView Native Wrapper), Gradle, APK Signing
-- **Core 3D Engine:** Three.js r128, WebGL, OrbitControls, JavaScript (ES6+)
-- **UI & Layout:** Tailwind CSS, Semantic HTML5, CSS Grid / Flexbox
-- **Typography:** Cinzel, Playfair Display, Space Mono, Yatra One (Devanagari)
-- **CI/CD:** GitHub Actions (`.github/workflows/deploy-pages.yml`) for the official download page
+| **गु** | **Guhyaka** | Master of Hidden Ways | Mystic knowledge of karmic shortcuts and cowrie dice manipulation. |
 
 ---
 
@@ -125,10 +134,10 @@ gyan-chaupar-game/
 
 ---
 
-## 👨‍💻 Creator & Author
+## 👨‍💻 Creator
 
 **Gauransh Bansal**  
-*Physics, Computational Modelling & Creative Engineering*
+*Curious builder, visual storyteller, and creative technologist.*
 
 - **LinkedIn:** [linkedin.com/in/gauransh-bansal-a71223239](https://www.linkedin.com/in/gauransh-bansal-a71223239/)
 - **GitHub:** [@gauranshbansal](https://github.com/gauranshbansal)
