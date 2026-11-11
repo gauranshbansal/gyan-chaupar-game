@@ -6,7 +6,7 @@
 
 <p align="center">
   <strong>The ancient 72-square Indian board game of karma, virtue, and spiritual liberation.</strong><br>
-  <em>Reconstructed and packaged as a standalone Android APK.</em>
+  <em>Conceived, directed, and brought to life as an offline Android APK by <strong>Gauransh Bansal</strong>.</em>
 </p>
 
 <p align="center">
@@ -26,26 +26,22 @@
 
 ---
 
-## 🌿 How This Was Built (The Honest Version)
+## 🌿 How This Was Built (The Honest Story)
 
-The spark was simple: I was scrolling Instagram and stumbled across [this reel](https://www.instagram.com/reel/Dey_O80MbTK/?rpxt=aWE1OXh1eWFpcG1r) explaining how *Snakes and Ladders* was originally a deeply philosophical 72-square Vedic/Jain game called **Gyan Chaupar (Moksha Patam)**. The history fascinated me, and my immediate reaction was: *let's actually build it*.
+The spark was simple: I was scrolling Instagram and stumbled across [this reel](https://www.instagram.com/reel/Dey_O80MbTK/?rpxt=aWE1OXh1eWFpcG1r) explaining how *Snakes and Ladders* was originally a deeply philosophical 72-square Vedic/Jain game called **Gyan Chaupar (Moksha Patam)**. The history fascinated me, and my immediate reaction was: *let's actually make this real*.
 
-I have been building personal utility apps for a while—like `monyp`, a custom app I made to motivate my own savings habits—and I’ve spent years working with storytelling, visual design, and video production. Naturally, I thought: *"I have the design and narrative experience down; making this game will be a breeze."*
+I’ve been building small personal apps for a while—like `monyp`, a tool I made to motivate my own savings habits—and I’ve spent years working in storytelling, visuals, and video design. Naturally, I thought: *"I know how to design and tell a story, this should be a cakewalk."*
 
-**It was not a cakewalk.**
+**Bro, it was not.**
 
-I’m not a software engineer by degree. I’m an engineer by curiosity and passion—meaning when an idea grabs hold of me, I will learn whatever math, code, or tools are necessary to bring it into reality.
+I am not a software engineer by degree. I didn't write the engine lines by hand or manually connect backend pipes. I had **Google AI Studio** handle the heavy coding.
 
-### Leveraging AI With Clear Intent
-To bridge the gap between concept and code, I heavily leveraged AI tools for technical research, boilerplate generation, and debugging. 
+Anyone who has tried taking an AI prompt and turning it into an actual, polished, working mobile game knows that generating code is only part of the journey:
+- **The creative vision and lore were mine:** Deciding to revive the authentic 72 squares rather than the colonial 100, designing the carved 3D aesthetic, shaping the Yaksha archetypes, and keeping the Sanskrit roots intact.
+- **The persistence and iteration:** Prompting, testing, breaking, re-prompting, fixing bugs, fine-tuning board rules, adjusting the cowrie dice feel, and pushing through hours of trial and error in AI Studio until it worked cleanly.
+- **The execution:** Turning raw prototypes into a self-contained, zero-bloat Android APK that runs 100% offline without ads or tracking.
 
-AI handled the syntax and accelerated the research, but:
-- The **creative direction and philosophy** were guided by hand.
-- The **game architecture, rules, and 72-square karmic state transitions** had to be researched, verified, and tuned.
-- The **carved 3D visual aesthetic, textures, and Yaksha lore** came from deliberate artistic choices.
-- Knowing **how to prompt, steer, debug, and connect fragmented code into a real, working Android binary** took hours of iteration and problem-solving.
-
-Even with AI as an amplifier, wrestling with WebGL coordinate spaces, 6-cowrie shell probability models, Android WebView asset paths, and zero-bloat APK packaging was a humbling technical grind. But the product is here, it’s 100% offline, and I’ll let the game speak for itself.
+I build things out of sheer passion and curiosity—when an idea grabs me, I will leverage whatever tools exist to bring it to life. I don't pretend to be a hardcore developer, but I saw a game that deserved to exist, put in the time to see it through, and here we are. The product will speak for itself.
 
 ---
 
