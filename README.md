@@ -1,60 +1,72 @@
 # Gyan Chaupar · ज्ञान चौपड़ (Moksha Patam)
 
 <p align="center">
-  <img src="assets/hero.png" alt="Gyan Chaupar Game Cover Artwork" width="680" style="border-radius: 8px;">
+  <img src="assets/hero.png" alt="Gyan Chaupar Frontispiece Artwork" width="680" style="border-radius: 8px;">
 </p>
 
 <p align="center">
   <strong>The ancient 72-square Indian board game of karma, virtue, and spiritual liberation.</strong><br>
-  <em>The authentic philosophical ancestor to Snakes and Ladders, reimagined for Android and Modern Web.</em>
+  <em>Reconstructed, designed, and engineered from scratch by <strong>Gauransh Bansal</strong>.</em>
 </p>
 
 <p align="center">
+  <a href="https://github.com/gauranshbansal/gyan-chaupar-game/releases/latest"><img src="https://img.shields.io/badge/Release-v1.4%20APK-gold.svg?style=flat-square" alt="Download APK"></a>
   <img src="https://img.shields.io/badge/Platform-Android%208.0%2B-green.svg?style=flat-square" alt="Android Platform">
   <img src="https://img.shields.io/badge/Payload-22.12%20MB-blue.svg?style=flat-square" alt="Payload Size">
+  <img src="https://img.shields.io/badge/Engine-Three.js%20%2F%20WebGL-orange.svg?style=flat-square" alt="Three.js">
+  <img src="https://img.shields.io/badge/Privacy-100%25%20Offline%20%26%20No%20Ads-purple.svg?style=flat-square" alt="Offline & No Ads">
   <img src="https://img.shields.io/badge/License-MIT-amber.svg?style=flat-square" alt="MIT License">
-  <img src="https://img.shields.io/badge/Offline-100%25%20No%20Ads-purple.svg?style=flat-square" alt="Offline & No Ads">
-  <img src="https://img.shields.io/badge/Web-Three.js%20%2F%20WebGL-orange.svg?style=flat-square" alt="Three.js">
+</p>
+
+<p align="center">
+  <a href="https://gauranshbansal.github.io/gyan-chaupar-game/"><strong>🌐 View Live Download Site</strong></a> &nbsp;•&nbsp;
+  <a href="https://gauranshbansal.github.io/gyan-chaupar-game/web-game/"><strong>🎮 Play 3D Web Edition</strong></a> &nbsp;•&nbsp;
+  <a href="https://www.linkedin.com/in/gauransh-bansal-a71223239/"><strong>Connect on LinkedIn</strong></a>
 </p>
 
 ---
 
-## 📜 About The Game
+## 🛠️ The Build: Why & How I Made This
 
-**Gyan Chaupar** (also historically known as *Moksha Patam*, *Mokshapat*, or *Leela*) is an ancient Indian philosophical board game originating centuries ago across Jain, Hindu, and Sufi traditions. 
+Hi, I’m **Gauransh Bansal**. I built this project to bridge creative computing, physics-informed simulations, and forgotten cultural systems.
 
-In 1892, colonial manufacturers adapted the board into the British children's game *Snakes and Ladders*, removing its 72-square cosmology, Sanskrit virtues, and karmic depth.
+Most people know *Snakes and Ladders*, but few realize its ancestor—**Gyan Chaupar (Moksha Patam)**—was a mathematically deliberate 72-square philosophical map. When 19th-century colonial toy makers adapted it, they flattened it into a 100-square kids' game, stripped away the Sanskrit virtues, and discarded its mechanical logic.
 
-This repository preserves and revitalizes the **authentic 72-square board**:
-- **72 Cosmic Squares** tracing the soul's passage (*Jiva*) through worldly existence (*Samsara*) to liberation (*Vaikuntha / Moksha*).
-- **Ladders of Virtue (*Dharma Soapan*)**: Virtues like *Daya* (Compassion), *Tapa* (Ascetic discipline), and *Bhakti* (Devotion) propel the player upward.
-- **Serpents of Karma (*Sarpa Dansha*)**: Vices like *Krodha* (Wrath), *Lobha* (Greed), and *Irshya* (Envy) swallow the player back to lower planes.
-- **Four Yaksha Guardians**: Play as *Kubera*, *Śaṅkha*, *Padma*, or *Guhyaka*, each with distinct abilities.
-- **Three Play Modes**: *Classic Patam*, *Yama's Vacation*, and *Shakti Mode*.
+Rather than just writing about the history, **I engineered a complete digital recreation from scratch**:
+
+- **Real-Time 3D WebGL Engine:** Built a real-time carved 3D board in Three.js (r128) with dynamic camera orbiting, custom lighting passes, and mobile-optimized geometry rendering at a locked 60 FPS.
+- **Probabilistic Cowrie Dice Physics:** Replaced uniform flat 1–6 dice with authentic 6-cowrie shell mechanics, modeling non-uniform binomial probability distributions ($n=6, p \approx 0.5$) for authentic gameplay.
+- **Rule Engine & State Machine:** Programmed the 72-square non-linear state machine including virtue ascents (*Dharma, Daya, Bhakti*), vice falls (*Krodha, Lobha, Moha*), and 4 asymmetric Yaksha guardian archetypes (*Kubera, Śaṅkha, Padma, Guhyaka*).
+- **Zero-Bloat Android APK:** Packaged the local runtime into a 22.1 MB standalone Android APK requiring zero network calls, zero tracking libraries, and zero ad frameworks.
+- **Art Direction & Editorial Design:** Curated the visual identity, carved token textures, and tactile poster aesthetic honoring 18th-century Rajasthani and Mewar manuscript art.
 
 ---
 
-## 🎮 Play & Download
+## 🎮 How to Play
 
-### 1. Android APK (Direct Download)
-- **File:** [`assets/Gyan-Chaupar.apk`](assets/Gyan-Chaupar.apk)
-- **Size:** `22.12 MB` (23,195,692 bytes)
+### 1. Android APK (Direct Sideload)
+- **Direct Link:** [`assets/Gyan-Chaupar.apk`](assets/Gyan-Chaupar.apk)
+- **File Size:** `22.12 MB` (23,195,692 bytes)
 - **Target OS:** Android 8.0 (Oreo) through Android 15+
 - **Architecture:** Universal (ARM64, ARMv7, x86_64)
-- **Permissions:** Zero invasive permissions (No contacts, camera, or storage tracking)
-- **Network:** 100% Offline playable
+- **Permissions:** None required (Runs in an offline local sandbox)
 
 ### 2. Web Edition (Interactive 3D Board)
-Play directly in any modern desktop or mobile browser without installation:
-- **Location:** Open [`web-game/index.html`](web-game/index.html) locally or via GitHub Pages.
-- **Tech Stack:** Vanilla JavaScript, Three.js (r128), OrbitControls, TailwindCSS.
+Play directly in your browser without installing anything:
+- **Online:** [gauranshbansal.github.io/gyan-chaupar-game/web-game/](https://gauranshbansal.github.io/gyan-chaupar-game/web-game/)
+- **Local:** Open [`web-game/index.html`](web-game/index.html) in Chrome, Edge, or Firefox.
 
 ---
 
-## 🛡️ Cryptographic Verification
+## 🛡️ Cryptographic Integrity (SHA-256)
 
-To ensure your downloaded APK is untampered, compare its SHA-256 checksum:
+All official builds of `Gyan-Chaupar.apk` distributed here match this exact SHA-256 hash:
 
+```text
+BC498A0449F7C327D17DC2C02E8968142A5216D5DA1815126C9C97F1DED011C8
+```
+
+Verify it locally in terminal:
 ```bash
 # Windows PowerShell
 Get-FileHash -Path assets/Gyan-Chaupar.apk -Algorithm SHA256
@@ -63,38 +75,33 @@ Get-FileHash -Path assets/Gyan-Chaupar.apk -Algorithm SHA256
 sha256sum assets/Gyan-Chaupar.apk
 ```
 
-**Official SHA-256 Hash:**
-```text
-BC498A0449F7C327D17DC2C02E8968142A5216D5DA1815126C9C97F1DED011C8
-```
-
----
-
-## 📲 How to Install on Android
-
-1. Download [`Gyan-Chaupar.apk`](assets/Gyan-Chaupar.apk) to your Android device.
-2. Tap the downloaded file in your browser or File Manager.
-3. If prompted with *"For security, your phone is not allowed to install unknown apps"*:
-   - Tap **Settings** → toggle **Allow from this source**.
-4. Tap **Install** and begin your journey across the 72 squares.
-
 ---
 
 ## 🏛️ The Four Yaksha Guardians
 
-| Glyph | Guardian | Epithet | Domain & Ability |
+| Glyph | Guardian | Epithet | Mechanical Specialty |
 |:---:|---|---|---|
 | **कु** | **Kubera** | Lord of True Wealth | Resilience across squares of greed (*Lobha*) and temporal attachment. |
-| **शं** | **Śaṅkha** | The Sacred Resonance | Divine conch sound; dispels serpentine delusions in lower planes. |
-| **प** | **Padma** | Lotus Purity | Untainted karmic ascension; boosts progress across virtue ladders. |
-| **गु** | **Guhyaka** | Master of Hidden Ways | Mystic knowledge of karmic shortcuts and cowrie dice control. |
+| **शं** | **Śaṅkha** | The Sacred Resonance | Primordial sound; dispels serpentine delusions in lower planes. |
+| **प** | **Padma** | Lotus Purity | Untainted ascension; bonus progress across virtue ladders. |
+| **गु** | **Guhyaka** | Master of Hidden Ways | Mystic knowledge of karmic shortcuts and cowrie manipulation. |
+
+---
+
+## 💻 Tech Stack & Architecture
+
+- **Core Game Engine:** Vanilla JavaScript (ES6+), Three.js r128, WebGL, OrbitControls
+- **UI & Layout:** Tailwind CSS, Semantic HTML5, CSS Grid / Flexbox
+- **Typography:** Cinzel, Playfair Display, Space Mono, Yatra One (Devanagari)
+- **Mobile Distribution:** Android SDK (WebView Native Wrapper), Gradle, APK signing
+- **CI/CD:** GitHub Actions (`.github/workflows/deploy-pages.yml`) for zero-config GitHub Pages hosting
 
 ---
 
 ## 📂 Repository Structure
 
 ```text
-gyan-chaupar/
+gyan-chaupar-game/
 ├── .github/
 │   └── workflows/
 │       └── deploy-pages.yml      # Automated GitHub Pages CI/CD
@@ -108,7 +115,7 @@ gyan-chaupar/
 │   └── campaign.png              # 10-panel lore tapestry artwork
 ├── web-game/
 │   ├── index.html                # Playable 3D WebGL edition
-│   ├── standalone.html           # Standalone single-file version
+│   ├── standalone.html           # Single-file browser fallback
 │   ├── OrbitControls.js          # Three.js camera controller
 │   ├── three.min.js              # Three.js r128 engine
 │   ├── tailwind.min.js           # Styling framework
@@ -122,30 +129,17 @@ gyan-chaupar/
 
 ---
 
-## 🌐 Deploying to GitHub Pages
+## 👨‍💻 Creator & Author
 
-1. Push this repository to a new repository on GitHub:
-   ```bash
-   git remote add origin https://github.com/<your-username>/gyan-chaupar.git
-   git push -u origin main
-   ```
-2. Navigate to your repository **Settings** → **Pages**.
-3. Under **Build and deployment** → **Source**, select **GitHub Actions**.
-4. The workflow in `.github/workflows/deploy-pages.yml` will automatically build and publish:
-   - The landing page at `https://<your-username>.github.io/gyan-chaupar/`
-   - The 3D game at `https://<your-username>.github.io/gyan-chaupar/web-game/`
+**Gauransh Bansal**  
+*Physics, Computational Modelling & Creative Engineering*
 
----
-
-## 👨‍💻 Author & Credits
-
-- **Creator & Developer:** **Gauransh Bansal**
-  - **LinkedIn:** [linkedin.com/in/gauransh-bansal-a71223239](https://www.linkedin.com/in/gauransh-bansal-a71223239/)
-  - **GitHub:** [@gauranshbansal](https://github.com/gauranshbansal)
-  - **Email:** [gauranshbansal2205@gmail.com](mailto:gauranshbansal2205@gmail.com)
+- **LinkedIn:** [linkedin.com/in/gauransh-bansal-a71223239](https://www.linkedin.com/in/gauransh-bansal-a71223239/)
+- **GitHub:** [@gauranshbansal](https://github.com/gauranshbansal)
+- **Email:** [gauranshbansal2205@gmail.com](mailto:gauranshbansal2205@gmail.com)
 
 ---
 
 ## 📄 License
 
-This project is open-source software licensed under the **[MIT License](LICENSE)**. Traditional rules, nomenclatures, and board motifs are part of the cultural heritage of South Asia.
+This software is released under the **[MIT License](LICENSE)**. © 2026 Gauransh Bansal.
