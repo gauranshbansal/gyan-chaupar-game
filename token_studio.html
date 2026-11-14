@@ -1,0 +1,1447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gyan Chaupar — 3D Yaksha Token Design & Sketch Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Yatra+One&display=swap" rel="stylesheet">
+  <script src="assets/three.min.js"></script>
+  <script src="assets/OrbitControls.js"></script>
+  <style>
+    :root {
+      --bg: #090807;
+      --card: #14110e;
+      --panel: #1b1612;
+      --border: rgba(212, 169, 106, 0.22);
+      --gold: #d4a96a;
+      --gold-bright: #f5cf82;
+      --text: #ede4d6;
+      --muted: #a39582;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      padding: 24px 32px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(20, 17, 14, 0.85);
+      backdrop-filter: blur(16px);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .brand-title {
+      font-family: 'Cinzel', serif;
+      font-size: 20px;
+      letter-spacing: 0.12em;
+      color: var(--gold-bright);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-sub {
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn {
+      padding: 10px 18px;
+      border-radius: 6px;
+      font-family: 'Cinzel', serif;
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      font-weight: 700;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--text);
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn:hover {
+      background: rgba(212, 169, 106, 0.18);
+      border-color: var(--gold);
+      color: #fff;
+      transform: translateY(-1px);
+    }
+
+    .btn-gold {
+      background: linear-gradient(135deg, #d4a96a, #966b2a);
+      color: #120e09;
+      border-color: var(--gold-bright);
+      box-shadow: 0 4px 18px rgba(212, 169, 106, 0.25);
+    }
+
+    .btn-gold:hover {
+      background: linear-gradient(135deg, #f5cf82, #b88538);
+      color: #000;
+      box-shadow: 0 6px 24px rgba(212, 169, 106, 0.45);
+    }
+
+    main {
+      padding: 32px;
+      max-width: 1500px;
+      margin: 0 auto;
+      width: 100%;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 36px;
+    }
+
+    .studio-layout {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 28px;
+      align-items: start;
+    }
+
+    @media (max-width: 1024px) {
+      .studio-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .control-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+
+    .card-title {
+      font-family: 'Cinzel', serif;
+      font-size: 14px;
+      letter-spacing: 0.15em;
+      color: var(--gold);
+      text-transform: uppercase;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(212, 169, 106, 0.15);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .selector-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .yaksha-tab-btn {
+      padding: 12px 10px;
+      border-radius: 8px;
+      background: var(--panel);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s ease;
+    }
+
+    .yaksha-tab-btn.active {
+      border-color: var(--gold);
+      background: rgba(212, 169, 106, 0.14);
+      box-shadow: 0 0 16px rgba(212, 169, 106, 0.22);
+    }
+
+    .tab-glyph {
+      font-family: 'Yatra One', cursive;
+      font-size: 20px;
+      color: var(--gold-bright);
+    }
+
+    .tab-name {
+      font-family: 'Cinzel', serif;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      font-weight: 700;
+    }
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .control-label {
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .pill-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .pill-btn {
+      padding: 6px 12px;
+      border-radius: 4px;
+      background: var(--panel);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--muted);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .pill-btn.active {
+      background: var(--gold);
+      color: #120e09;
+      font-weight: 700;
+      border-color: var(--gold-bright);
+    }
+
+    .viewer-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .viewport-container {
+      position: relative;
+      width: 100%;
+      height: 640px;
+      background: radial-gradient(circle at 50% 40%, #1f1a14 0%, #0d0a07 70%, #060504 100%);
+    }
+
+    .viewport-container.white-bg {
+      background: #ffffff !important;
+    }
+
+    .viewport-container.transparent-bg {
+      background: repeating-conic-gradient(#1f1a14 0% 25%, #15110d 0% 50%) 50% / 20px 20px !important;
+    }
+
+    #threeCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .viewport-hud {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      pointer-events: none;
+      background: rgba(14, 11, 8, 0.7);
+      backdrop-filter: blur(8px);
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid rgba(212, 169, 106, 0.2);
+    }
+
+    .hud-title {
+      font-family: 'Cinzel', serif;
+      font-size: 14px;
+      letter-spacing: 0.14em;
+      color: var(--gold-bright);
+      font-weight: 700;
+    }
+
+    .hud-desc {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .viewport-controls-bar {
+      position: absolute;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(14, 11, 8, 0.85);
+      backdrop-filter: blur(12px);
+      padding: 8px 14px;
+      border-radius: 30px;
+      border: 1px solid rgba(212, 169, 106, 0.25);
+    }
+
+    .hud-btn {
+      padding: 6px 12px;
+      border-radius: 20px;
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text);
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .hud-btn:hover {
+      background: rgba(212, 169, 106, 0.2);
+      border-color: var(--gold);
+    }
+
+    .hud-btn.active {
+      background: var(--gold);
+      color: #120e09;
+      font-weight: 700;
+    }
+
+    /* 4-TOKEN GALLERY OVERVIEW */
+    .gallery-section {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+    }
+
+    .section-title {
+      font-family: 'Cinzel', serif;
+      font-size: 18px;
+      letter-spacing: 0.12em;
+      color: var(--gold-bright);
+    }
+
+    .section-sub {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .tokens-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+    }
+
+    @media (max-width: 1024px) {
+      .tokens-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 600px) {
+      .tokens-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .token-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .token-card:hover {
+      border-color: var(--gold);
+      transform: translateY(-4px);
+    }
+
+    .token-card-preview {
+      width: 100%;
+      height: 320px;
+      position: relative;
+      background: radial-gradient(circle at 50% 40%, #201a14 0%, #0c0a07 80%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .token-card-canvas {
+      width: 100%;
+      height: 100%;
+    }
+
+    .token-card-meta {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      background: var(--panel);
+      border-top: 1px solid rgba(212, 169, 106, 0.12);
+    }
+
+    .token-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .card-yaksha-name {
+      font-family: 'Cinzel', serif;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--gold-bright);
+      letter-spacing: 0.08em;
+    }
+
+    .card-yaksha-glyph {
+      font-family: 'Yatra One', cursive;
+      font-size: 18px;
+      color: var(--gold);
+    }
+
+    .card-archetype {
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .card-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .card-btn {
+      flex: 1;
+      padding: 8px 10px;
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-family: 'Cinzel', serif;
+      font-weight: 700;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      color: var(--text);
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s ease;
+    }
+
+    .card-btn:hover {
+      background: var(--gold);
+      color: #120e09;
+      border-color: var(--gold-bright);
+    }
+
+    /* 2D ARCHIVAL PORTRAIT STRIP */
+    .archival-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+    }
+
+    @media (max-width: 900px) {
+      .archival-row {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .archival-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .archival-img-wrap {
+      width: 100%;
+      height: 380px;
+      overflow: hidden;
+      background: #000;
+      position: relative;
+    }
+
+    .archival-img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top center;
+      transition: transform 0.3s ease;
+    }
+
+    .archival-card:hover img {
+      transform: scale(1.04);
+    }
+
+    .archival-meta {
+      padding: 14px;
+      background: var(--panel);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* NOTIFICATION TOAST */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #14110e;
+      border: 1px solid var(--gold);
+      color: var(--gold-bright);
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-family: 'Cinzel', serif;
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 999;
+      pointer-events: none;
+    }
+
+    #toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div>
+      <div class="brand-title">
+        <span>☸</span> GYAN CHAUPAR TOKEN STUDIO
+      </div>
+      <div class="brand-sub">Yaksha Figurine Stills & Sketch Reference Studio</div>
+    </div>
+    <div class="header-actions">
+      <button class="btn" id="btnExportAllColor">
+        <span>📸</span> Export All 4 Stills (Color)
+      </button>
+      <button class="btn btn-gold" id="btnExportAllSketch">
+        <span>✏️</span> Export All 4 Stills (Sketch Clay)
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <!-- TOP SECTION: INTERACTIVE TOKEN INSPECTOR -->
+    <div class="studio-layout">
+      <!-- SIDEBAR CONTROLS -->
+      <div class="control-card">
+        <div class="card-title">
+          <span>Active Yaksha</span>
+          <span style="font-size: 11px; opacity: 0.6;">4 Archetypes</span>
+        </div>
+
+        <div class="selector-grid">
+          <div class="yaksha-tab-btn active" data-id="0">
+            <span class="tab-glyph">कु</span>
+            <span class="tab-name">KUBERA</span>
+          </div>
+          <div class="yaksha-tab-btn" data-id="1">
+            <span class="tab-glyph">शं</span>
+            <span class="tab-name">ŚAṄKHA</span>
+          </div>
+          <div class="yaksha-tab-btn" data-id="2">
+            <span class="tab-glyph">प</span>
+            <span class="tab-name">PADMA</span>
+          </div>
+          <div class="yaksha-tab-btn" data-id="3">
+            <span class="tab-glyph">गु</span>
+            <span class="tab-name">GUHYAKA</span>
+          </div>
+        </div>
+
+        <!-- RENDER & SKETCH MATERIAL MODES -->
+        <div class="control-group">
+          <label class="control-label">Material & Shading Mode</label>
+          <div class="pill-group" id="materialPills">
+            <button class="pill-btn active" data-mode="color">Polished Bronze (Game)</button>
+            <button class="pill-btn" data-mode="sketch">Sketch Clay (Pencil Contour)</button>
+            <button class="pill-btn" data-mode="wireframe">Wireframe Mesh</button>
+          </div>
+        </div>
+
+        <!-- CAMERA PERSPECTIVE PRESETS -->
+        <div class="control-group">
+          <label class="control-label">Camera Angle Preset</label>
+          <div class="pill-group" id="cameraPills">
+            <button class="pill-btn active" data-cam="front">Full Front View (0°)</button>
+            <button class="pill-btn" data-cam="threequarter">3/4 Hero (45°)</button>
+            <button class="pill-btn" data-cam="profile">Side Profile (90°)</button>
+            <button class="pill-btn" data-cam="top">Top View</button>
+          </div>
+        </div>
+
+        <!-- PROJECTION LENS -->
+        <div class="control-group">
+          <label class="control-label">Camera Lens Projection</label>
+          <div class="pill-group" id="projectionPills">
+            <button class="pill-btn active" data-proj="persp">Perspective (Natural)</button>
+            <button class="pill-btn" data-proj="ortho">Orthographic (0% Distortion)</button>
+          </div>
+        </div>
+
+        <!-- BACKGROUND PRESET -->
+        <div class="control-group">
+          <label class="control-label">Studio Canvas Backdrop</label>
+          <div class="pill-group" id="bgPills">
+            <button class="pill-btn active" data-bg="temple">Temple Dark</button>
+            <button class="pill-btn" data-bg="white">Pure White (Tracing)</button>
+            <button class="pill-btn" data-bg="transparent">Transparent PNG</button>
+          </div>
+        </div>
+
+        <!-- EXPORT RESOLUTION -->
+        <div class="control-group">
+          <label class="control-label">Export Resolution</label>
+          <div class="pill-group" id="resPills">
+            <button class="pill-btn" data-res="1024">1024 × 1024</button>
+            <button class="pill-btn active" data-res="2048">2048 × 2048 (Hi-Res)</button>
+          </div>
+        </div>
+
+        <button class="btn btn-gold" id="btnDownloadActive" style="width: 100%; justify-content: center; padding: 14px;">
+          <span>📸</span> Download Active Still (PNG)
+        </button>
+      </div>
+
+      <!-- MAIN 3D VIEWPORT -->
+      <div class="viewer-card">
+        <div class="viewport-container" id="viewportContainer">
+          <canvas id="threeCanvas"></canvas>
+
+          <div class="viewport-hud">
+            <div class="hud-title" id="hudName">KUBERA · FORTUNE</div>
+            <div class="hud-desc" id="hudDetails">Sovereign of Golden Abundance · Chintamani Jewel Holder</div>
+          </div>
+
+          <div class="viewport-controls-bar">
+            <button class="hud-btn active" id="btnAutoSpin">Rotate: On</button>
+            <button class="hud-btn" id="btnResetView">Reset Front</button>
+            <button class="hud-btn" id="btnLightBoost">Halo Glow</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4-TOKEN SIMULTANEOUS FRONT-VIEW GRID -->
+    <section class="gallery-section">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">All Four Yaksha Figurine Stills</h2>
+          <p class="section-sub">Full-scale front elevations rendered directly from the 3D game engine</p>
+        </div>
+        <div style="font-size: 11px; letter-spacing: 0.12em; color: var(--gold);">
+          [CLICK ANY CARD TO INSPECT OR DOWNLOAD]
+        </div>
+      </div>
+
+      <div class="tokens-grid" id="tokensGrid">
+        <!-- Rendered dynamically by script -->
+      </div>
+    </section>
+
+    <!-- 2D ORIGINAL ARCHIVAL CARDS -->
+    <section class="gallery-section">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Archival 2D Portrait Artwork</h2>
+          <p class="section-sub">Original visual design paintings extracted from the game package</p>
+        </div>
+      </div>
+
+      <div class="archival-row">
+        <div class="archival-card">
+          <div class="archival-img-wrap">
+            <img src="assets/token_kubera.jpg" alt="Kubera Archival Portrait">
+          </div>
+          <div class="archival-meta">
+            <strong style="font-family: 'Cinzel', serif; color: var(--gold-bright);">KUBERA</strong>
+            <span style="font-size: 11px; color: var(--muted);">Sovereign Gold</span>
+          </div>
+        </div>
+
+        <div class="archival-card">
+          <div class="archival-img-wrap">
+            <img src="assets/token_sankha.jpg" alt="Śaṅkha Archival Portrait">
+          </div>
+          <div class="archival-meta">
+            <strong style="font-family: 'Cinzel', serif; color: #5eead4;">ŚAṄKHA</strong>
+            <span style="font-size: 11px; color: var(--muted);">Sacred Teal</span>
+          </div>
+        </div>
+
+        <div class="archival-card">
+          <div class="archival-img-wrap">
+            <img src="assets/token_padma.jpg" alt="Padma Archival Portrait">
+          </div>
+          <div class="archival-meta">
+            <strong style="font-family: 'Cinzel', serif; color: #fca5a5;">PADMA</strong>
+            <span style="font-size: 11px; color: var(--muted);">Solar Crimson</span>
+          </div>
+        </div>
+
+        <div class="archival-card">
+          <div class="archival-img-wrap">
+            <img src="assets/token_guhyaka.jpg" alt="Guhyaka Archival Portrait">
+          </div>
+          <div class="archival-meta">
+            <strong style="font-family: 'Cinzel', serif; color: #e7e5e4;">GUHYAKA</strong>
+            <span style="font-size: 11px; color: var(--muted);">Astral Silver</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast">Downloaded Still Successfully ✓</div>
+
+  <!-- STUDIO THREE.JS LOGIC -->
+  <script>
+    // --- 1. YAKSHA DEFINITIONS (DIRECT FROM GYAN CHAUPAR GAME) ---
+    const YAKSHA_DEFS = [
+      {
+        id: 0,
+        name: 'Kubera',
+        sanskrit: 'कु',
+        color: 0xf59e0b,
+        metalness: 0.78,
+        roughness: 0.18,
+        gemColor: 0xfef08a,
+        dotHex: '#f59e0b',
+        archetype: 'Fortune · Sovereign Gold',
+        epithet: 'Sovereign of Golden Abundance & Auspicious Wealth',
+        haloColor: 0xfacc15
+      },
+      {
+        id: 1,
+        name: 'Śaṅkha',
+        sanskrit: 'शं',
+        color: 0x14b8a6,
+        metalness: 0.55,
+        roughness: 0.22,
+        gemColor: 0x5eead4,
+        dotHex: '#14b8a6',
+        archetype: 'Guardian · Sacred Teal',
+        epithet: 'Guardian of Sacred Dharma & Cosmic Conch Resonance',
+        haloColor: 0x2dd4bf
+      },
+      {
+        id: 2,
+        name: 'Padma',
+        sanskrit: 'प',
+        color: 0xef4444,
+        metalness: 0.42,
+        roughness: 0.24,
+        gemColor: 0xfca5a5,
+        dotHex: '#ef4444',
+        archetype: 'Sprinter · Solar Crimson',
+        epithet: 'Blossoming Solar Lotus of Mobility & Swift Ascension',
+        haloColor: 0xf87171
+      },
+      {
+        id: 3,
+        name: 'Guhyaka',
+        sanskrit: 'गु',
+        color: 0xf5f5f4,
+        metalness: 0.25,
+        roughness: 0.20,
+        gemColor: 0xfde047,
+        dotHex: '#e7e5e4',
+        archetype: 'Trickster · Astral Silver',
+        epithet: 'Mystic Keeper of Astral Shadows & Sacred Secrets',
+        haloColor: 0xe2e8f0
+      }
+    ];
+
+    // --- 2. STATE ---
+    let currentYakshaId = 0;
+    let currentMaterialMode = 'color'; // 'color' | 'sketch' | 'wireframe'
+    let currentCameraPreset = 'front'; // 'front' | 'threequarter' | 'profile' | 'top'
+    let currentProjection = 'persp'; // 'persp' | 'ortho'
+    let currentBg = 'temple'; // 'temple' | 'white' | 'transparent'
+    let currentResolution = 2048;
+    let autoSpin = false;
+    let haloGlow = true;
+
+    // --- 3. THREE.JS FIGURINE BUILDER ---
+    function createYakshaFigurineMesh(def, mode = 'color') {
+      const group = new THREE.Group();
+
+      let bodyMat, goldMat, gemMat, haloMat;
+
+      if (mode === 'sketch') {
+        // High-contrast clean clay/alabaster material with crisp edge shadowing - ideal for sketches!
+        bodyMat = new THREE.MeshStandardMaterial({
+          color: 0xf3f1ec,
+          roughness: 0.55,
+          metalness: 0.05
+        });
+        goldMat = new THREE.MeshStandardMaterial({
+          color: 0xd6d0c2,
+          roughness: 0.45,
+          metalness: 0.12
+        });
+        gemMat = new THREE.MeshStandardMaterial({
+          color: 0x242424,
+          roughness: 0.25,
+          metalness: 0.1
+        });
+        haloMat = new THREE.MeshStandardMaterial({
+          color: 0xbdb7a8,
+          roughness: 0.4,
+          metalness: 0.1
+        });
+      } else if (mode === 'wireframe') {
+        bodyMat = new THREE.MeshBasicMaterial({ color: 0xd4a96a, wireframe: true });
+        goldMat = new THREE.MeshBasicMaterial({ color: 0xfacc15, wireframe: true });
+        gemMat = new THREE.MeshBasicMaterial({ color: 0xef4444, wireframe: true });
+        haloMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8, wireframe: true });
+      } else {
+        // Authentic Game PBR Materials
+        bodyMat = new THREE.MeshStandardMaterial({
+          color: def.color,
+          metalness: def.metalness,
+          roughness: def.roughness
+        });
+
+        goldMat = new THREE.MeshStandardMaterial({
+          color: 0xfacc15,
+          metalness: 0.88,
+          roughness: 0.18
+        });
+
+        gemMat = new THREE.MeshStandardMaterial({
+          color: def.gemColor,
+          emissive: def.gemColor,
+          emissiveIntensity: haloGlow ? 0.65 : 0.25,
+          roughness: 0.10
+        });
+
+        haloMat = new THREE.MeshStandardMaterial({
+          color: 0xfacc15,
+          emissive: def.haloColor || def.gemColor,
+          emissiveIntensity: haloGlow ? 0.40 : 0.10,
+          roughness: 0.20,
+          metalness: 0.90
+        });
+      }
+
+      // 1. Heavy Bronze Plinth & 12-Petalled Padma Pedestal
+      const plinth = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.40, 0.12, 32), goldMat);
+      plinth.position.y = 0.06;
+      plinth.castShadow = true;
+      plinth.receiveShadow = true;
+      group.add(plinth);
+
+      const petalGeo = new THREE.SphereGeometry(0.09, 14, 14);
+      petalGeo.scale(0.85, 0.45, 1.75);
+      for (let p = 0; p < 12; p++) {
+        const ang = (p / 12) * Math.PI * 2;
+        const petal = new THREE.Mesh(petalGeo, bodyMat);
+        petal.position.set(Math.cos(ang) * 0.28, 0.125, Math.sin(ang) * 0.28);
+        petal.rotation.y = -ang + Math.PI / 2;
+        petal.rotation.x = 0.28;
+        petal.castShadow = true;
+        group.add(petal);
+      }
+
+      // 2. Cross-Legged Asana & Auspicious Tundila Belly
+      const legs = new THREE.Mesh(new THREE.TorusGeometry(0.18, 0.085, 16, 32), bodyMat);
+      legs.rotation.x = Math.PI / 2;
+      legs.position.y = 0.20;
+      legs.castShadow = true;
+      group.add(legs);
+
+      const belly = new THREE.Mesh(new THREE.SphereGeometry(0.22, 28, 24), bodyMat);
+      belly.scale.set(1.06, 0.92, 1.10);
+      belly.position.set(0, 0.38, 0.02);
+      belly.castShadow = true;
+      group.add(belly);
+
+      const chest = new THREE.Mesh(new THREE.CylinderGeometry(0.19, 0.17, 0.20, 24), bodyMat);
+      chest.position.y = 0.56;
+      chest.castShadow = true;
+      group.add(chest);
+
+      const torque = new THREE.Mesh(new THREE.TorusGeometry(0.15, 0.03, 12, 28), goldMat);
+      torque.rotation.x = Math.PI / 2 + 0.18;
+      torque.position.set(0, 0.64, 0.02);
+      torque.castShadow = true;
+      group.add(torque);
+
+      // 3. Arms Holding Glowing Chintamani Jewel
+      [-1, 1].forEach(side => {
+        const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.05, 0.26, 16), bodyMat);
+        arm.position.set(side * 0.21, 0.48, 0.06);
+        arm.rotation.z = side * 0.38;
+        arm.rotation.x = -0.45;
+        arm.castShadow = true;
+        group.add(arm);
+      });
+
+      const jewel = new THREE.Mesh(new THREE.OctahedronGeometry(0.095, 1), gemMat);
+      jewel.position.set(0, 0.45, 0.23);
+      jewel.castShadow = true;
+      group.add(jewel);
+
+      // 4. Head, Kundala Earrings & Tiered Karanda Mukuta Crown
+      const head = new THREE.Mesh(new THREE.SphereGeometry(0.16, 28, 24), bodyMat);
+      head.position.y = 0.80;
+      head.castShadow = true;
+      group.add(head);
+
+      [-1, 1].forEach(side => {
+        const ring = new THREE.Mesh(new THREE.TorusGeometry(0.045, 0.015, 12, 20), goldMat);
+        ring.position.set(side * 0.16, 0.77, 0);
+        ring.castShadow = true;
+        group.add(ring);
+      });
+
+      [0, 1, 2].forEach(tier => {
+        const cRing = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.11 - tier * 0.028, 0.13 - tier * 0.028, 0.08, 24),
+          goldMat
+        );
+        cRing.position.y = 0.95 + tier * 0.075;
+        cRing.castShadow = true;
+        group.add(cRing);
+      });
+
+      const finial = new THREE.Mesh(new THREE.ConeGeometry(0.055, 0.14, 18), goldMat);
+      finial.position.y = 1.24;
+      finial.castShadow = true;
+      group.add(finial);
+
+      // 5. Prabhamandala Halo Behind Head
+      const halo = new THREE.Mesh(new THREE.TorusGeometry(0.24, 0.024, 14, 32), haloMat);
+      halo.position.set(0, 0.92, -0.10);
+      halo.castShadow = true;
+      group.add(halo);
+
+      return group;
+    }
+
+    // --- 4. MAIN VIEWPORT SETUP ---
+    const canvas = document.getElementById('threeCanvas');
+    const container = document.getElementById('viewportContainer');
+
+    const scene = new THREE.Scene();
+
+    let perspCamera, orthoCamera, activeCamera;
+    let renderer, controls;
+    let activeTokenGroup = null;
+
+    function initThree() {
+      const w = container.clientWidth;
+      const h = container.clientHeight;
+      const aspect = w / h;
+
+      // Cameras
+      perspCamera = new THREE.PerspectiveCamera(38, aspect, 0.1, 100);
+      perspCamera.position.set(0, 0.65, 2.3);
+
+      const frustumSize = 1.6;
+      orthoCamera = new THREE.OrthographicCamera(
+        -frustumSize * aspect / 2,
+        frustumSize * aspect / 2,
+        frustumSize / 2,
+        -frustumSize / 2,
+        0.1,
+        100
+      );
+      orthoCamera.position.set(0, 0.65, 2.3);
+
+      activeCamera = (currentProjection === 'ortho') ? orthoCamera : perspCamera;
+
+      // Renderer
+      renderer = new THREE.WebGLRenderer({
+        canvas: canvas,
+        antialias: true,
+        alpha: true,
+        preserveDrawingBuffer: true
+      });
+      renderer.setSize(w, h);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+      // Controls
+      controls = new THREE.OrbitControls(activeCamera, renderer.domElement);
+      controls.target.set(0, 0.62, 0);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.05;
+      controls.minDistance = 0.8;
+      controls.maxDistance = 5.0;
+
+      // Studio Lighting
+      const ambientLight = new THREE.HemisphereLight(0xfff3e0, 0x1a1410, 0.85);
+      scene.add(ambientLight);
+
+      // Key Light
+      const keyLight = new THREE.DirectionalLight(0xfff7ed, 1.4);
+      keyLight.position.set(1.8, 2.4, 2.0);
+      keyLight.castShadow = true;
+      keyLight.shadow.mapSize.width = 2048;
+      keyLight.shadow.mapSize.height = 2048;
+      keyLight.shadow.bias = -0.0005;
+      scene.add(keyLight);
+
+      // Fill Light
+      const fillLight = new THREE.DirectionalLight(0xdbeafe, 0.6);
+      fillLight.position.set(-2.0, 1.2, 1.5);
+      scene.add(fillLight);
+
+      // Rim / Kicker Light
+      const rimLight = new THREE.DirectionalLight(0xfef08a, 1.0);
+      rimLight.position.set(0, 2.2, -2.0);
+      scene.add(rimLight);
+
+      loadActiveToken();
+      applyCameraPreset(currentCameraPreset);
+
+      window.addEventListener('resize', onWindowResize);
+      animate();
+    }
+
+    function loadActiveToken() {
+      if (activeTokenGroup) {
+        scene.remove(activeTokenGroup);
+      }
+      const def = YAKSHA_DEFS[currentYakshaId];
+      activeTokenGroup = createYakshaFigurineMesh(def, currentMaterialMode);
+      scene.add(activeTokenGroup);
+
+      // Update HUD
+      document.getElementById('hudName').textContent = `${def.name.toUpperCase()} · ${def.archetype.toUpperCase()}`;
+      document.getElementById('hudDetails').textContent = def.epithet;
+    }
+
+    function applyCameraPreset(preset) {
+      currentCameraPreset = preset;
+      controls.target.set(0, 0.62, 0);
+
+      if (preset === 'front') {
+        activeCamera.position.set(0, 0.65, 2.3);
+      } else if (preset === 'threequarter') {
+        activeCamera.position.set(1.5, 0.95, 1.7);
+      } else if (preset === 'profile') {
+        activeCamera.position.set(2.3, 0.65, 0);
+      } else if (preset === 'top') {
+        activeCamera.position.set(0, 2.4, 0.05);
+      }
+      controls.update();
+    }
+
+    function onWindowResize() {
+      const w = container.clientWidth;
+      const h = container.clientHeight;
+      const aspect = w / h;
+
+      perspCamera.aspect = aspect;
+      perspCamera.updateProjectionMatrix();
+
+      const frustumSize = 1.6;
+      orthoCamera.left = -frustumSize * aspect / 2;
+      orthoCamera.right = frustumSize * aspect / 2;
+      orthoCamera.top = frustumSize / 2;
+      orthoCamera.bottom = -frustumSize / 2;
+      orthoCamera.updateProjectionMatrix();
+
+      renderer.setSize(w, h);
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+
+      if (autoSpin && activeTokenGroup) {
+        activeTokenGroup.rotation.y += 0.012;
+      }
+
+      controls.update();
+      renderer.render(scene, activeCamera);
+    }
+
+    // --- 5. HIGH-RES STILL EXPORT FUNCTION ---
+    function renderStillToDataURL(yakshaId, mode = 'color', resolution = 2048, camPreset = 'front', projection = 'ortho', transparent = false) {
+      const offscreenCanvas = document.createElement('canvas');
+      offscreenCanvas.width = resolution;
+      offscreenCanvas.height = resolution;
+
+      const offRenderer = new THREE.WebGLRenderer({
+        canvas: offscreenCanvas,
+        antialias: true,
+        alpha: transparent,
+        preserveDrawingBuffer: true
+      });
+      offRenderer.setSize(resolution, resolution);
+      offRenderer.shadowMap.enabled = true;
+      offRenderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+      const offScene = new THREE.Scene();
+      if (!transparent) {
+        offScene.background = (currentBg === 'white') ? new THREE.Color(0xffffff) : new THREE.Color(0x0a0907);
+      }
+
+      // Lighting
+      const amb = new THREE.HemisphereLight(0xfff3e0, 0x1a1410, (mode === 'sketch') ? 1.0 : 0.85);
+      offScene.add(amb);
+
+      const key = new THREE.DirectionalLight(0xfff7ed, (mode === 'sketch') ? 1.6 : 1.4);
+      key.position.set(1.8, 2.4, 2.0);
+      key.castShadow = true;
+      key.shadow.mapSize.width = 2048;
+      key.shadow.mapSize.height = 2048;
+      key.shadow.bias = -0.0005;
+      offScene.add(key);
+
+      const fill = new THREE.DirectionalLight(0xdbeafe, 0.6);
+      fill.position.set(-2.0, 1.2, 1.5);
+      offScene.add(fill);
+
+      const rim = new THREE.DirectionalLight(0xfef08a, (mode === 'sketch') ? 0.8 : 1.0);
+      rim.position.set(0, 2.2, -2.0);
+      offScene.add(rim);
+
+      // Camera
+      let offCamera;
+      const frustumSize = 1.55;
+      if (projection === 'ortho') {
+        offCamera = new THREE.OrthographicCamera(
+          -frustumSize / 2,
+          frustumSize / 2,
+          frustumSize / 2,
+          -frustumSize / 2,
+          0.1,
+          100
+        );
+      } else {
+        offCamera = new THREE.PerspectiveCamera(38, 1.0, 0.1, 100);
+      }
+
+      if (camPreset === 'front') {
+        offCamera.position.set(0, 0.62, 2.3);
+      } else if (camPreset === 'threequarter') {
+        offCamera.position.set(1.5, 0.95, 1.7);
+      } else if (camPreset === 'profile') {
+        offCamera.position.set(2.3, 0.62, 0);
+      } else if (camPreset === 'top') {
+        offCamera.position.set(0, 2.4, 0.05);
+      }
+      offCamera.lookAt(0, 0.62, 0);
+
+      // Model
+      const def = YAKSHA_DEFS[yakshaId];
+      const model = createYakshaFigurineMesh(def, mode);
+      offScene.add(model);
+
+      offRenderer.render(offScene, offCamera);
+      const dataURL = offscreenCanvas.toDataURL('image/png');
+
+      // Dispose offscreen resources
+      offRenderer.dispose();
+      return dataURL;
+    }
+
+    function triggerDownload(dataURL, filename) {
+      const a = document.createElement('a');
+      a.href = dataURL;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+
+      showToast(`Saved: ${filename}`);
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2400);
+    }
+
+    // --- 6. BUILD 4-TOKEN GALLERY GRID ---
+    function buildGalleryGrid() {
+      const grid = document.getElementById('tokensGrid');
+      grid.innerHTML = '';
+
+      YAKSHA_DEFS.forEach(def => {
+        const card = document.createElement('div');
+        card.className = 'token-card';
+
+        const previewWrap = document.createElement('div');
+        previewWrap.className = 'token-card-preview';
+
+        const canvasMini = document.createElement('canvas');
+        canvasMini.className = 'token-card-canvas';
+        previewWrap.appendChild(canvasMini);
+
+        const meta = document.createElement('div');
+        meta.className = 'token-card-meta';
+        meta.innerHTML = `
+          <div class="token-card-header">
+            <div class="card-yaksha-name">${def.name.toUpperCase()}</div>
+            <div class="card-yaksha-glyph">${def.sanskrit}</div>
+          </div>
+          <div class="card-archetype">${def.archetype}</div>
+          <div class="card-actions">
+            <button class="card-btn btn-inspect" data-id="${def.id}">Inspect 3D</button>
+            <button class="card-btn btn-dl-color" data-id="${def.id}">Color PNG</button>
+            <button class="card-btn btn-dl-sketch" data-id="${def.id}">Sketch PNG</button>
+          </div>
+        `;
+
+        card.appendChild(previewWrap);
+        card.appendChild(meta);
+        grid.appendChild(card);
+
+        // Render front thumbnail for each card
+        setTimeout(() => {
+          renderCardThumbnail(canvasMini, def);
+        }, 50 * def.id);
+      });
+
+      // Attach event listeners to card buttons
+      grid.addEventListener('click', e => {
+        const target = e.target;
+        const id = parseInt(target.getAttribute('data-id'), 10);
+        if (isNaN(id)) return;
+
+        if (target.classList.contains('btn-inspect')) {
+          selectYaksha(id);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else if (target.classList.contains('btn-dl-color')) {
+          const def = YAKSHA_DEFS[id];
+          const data = renderStillToDataURL(id, 'color', currentResolution, 'front', 'ortho', currentBg === 'transparent');
+          triggerDownload(data, `token_${def.name.toLowerCase()}_front_color_${currentResolution}px.png`);
+        } else if (target.classList.contains('btn-dl-sketch')) {
+          const def = YAKSHA_DEFS[id];
+          const data = renderStillToDataURL(id, 'sketch', currentResolution, 'front', 'ortho', currentBg === 'transparent');
+          triggerDownload(data, `token_${def.name.toLowerCase()}_front_sketch_clay_${currentResolution}px.png`);
+        }
+      });
+    }
+
+    function renderCardThumbnail(c, def) {
+      const rect = c.getBoundingClientRect();
+      const w = rect.width || 300;
+      const h = rect.height || 320;
+
+      const r = new THREE.WebGLRenderer({ canvas: c, antialias: true, alpha: true });
+      r.setSize(w, h);
+      r.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+      const s = new THREE.Scene();
+      const amb = new THREE.HemisphereLight(0xfff3e0, 0x1a1410, 0.9);
+      s.add(amb);
+      const dl = new THREE.DirectionalLight(0xfff7ed, 1.4);
+      dl.position.set(1.5, 2.0, 1.8);
+      s.add(dl);
+
+      const frustumSize = 1.6;
+      const aspect = w / h;
+      const cam = new THREE.OrthographicCamera(
+        -frustumSize * aspect / 2,
+        frustumSize * aspect / 2,
+        frustumSize / 2,
+        -frustumSize / 2,
+        0.1,
+        10
+      );
+      cam.position.set(0, 0.62, 2.2);
+      cam.lookAt(0, 0.62, 0);
+
+      const mesh = createYakshaFigurineMesh(def, 'color');
+      s.add(mesh);
+      r.render(s, cam);
+
+      // Clean up renderer instance memory
+      r.dispose();
+    }
+
+    function selectYaksha(id) {
+      currentYakshaId = id;
+      document.querySelectorAll('.yaksha-tab-btn').forEach(btn => {
+        btn.classList.toggle('active', parseInt(btn.getAttribute('data-id'), 10) === id);
+      });
+      loadActiveToken();
+      applyCameraPreset(currentCameraPreset);
+    }
+
+    // --- 7. EVENT BINDINGS ---
+    document.querySelectorAll('.yaksha-tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        selectYaksha(parseInt(btn.getAttribute('data-id'), 10));
+      });
+    });
+
+    // Material mode pills
+    document.getElementById('materialPills').addEventListener('click', e => {
+      if (!e.target.classList.contains('pill-btn')) return;
+      document.querySelectorAll('#materialPills .pill-btn').forEach(b => b.classList.remove('active'));
+      e.target.classList.add('active');
+      currentMaterialMode = e.target.getAttribute('data-mode');
+      loadActiveToken();
+    });
+
+    // Camera preset pills
+    document.getElementById('cameraPills').addEventListener('click', e => {
+      if (!e.target.classList.contains('pill-btn')) return;
+      document.querySelectorAll('#cameraPills .pill-btn').forEach(b => b.classList.remove('active'));
+      e.target.classList.add('active');
+      applyCameraPreset(e.target.getAttribute('data-cam'));
+    });
+
+    // Projection pills (Ortho / Persp)
+    document.getElementById('projectionPills').addEventListener('click', e => {
+      if (!e.target.classList.contains('pill-btn')) return;
+      document.querySelectorAll('#projectionPills .pill-btn').forEach(b => b.classList.remove('active'));
+      e.target.classList.add('active');
+      currentProjection = e.target.getAttribute('data-proj');
+
+      const savedPos = activeCamera.position.clone();
+      activeCamera = (currentProjection === 'ortho') ? orthoCamera : perspCamera;
+      activeCamera.position.copy(savedPos);
+      controls.object = activeCamera;
+      controls.update();
+    });
+
+    // Background pills
+    document.getElementById('bgPills').addEventListener('click', e => {
+      if (!e.target.classList.contains('pill-btn')) return;
+      document.querySelectorAll('#bgPills .pill-btn').forEach(b => b.classList.remove('active'));
+      e.target.classList.add('active');
+      currentBg = e.target.getAttribute('data-bg');
+
+      container.classList.remove('white-bg', 'transparent-bg');
+      if (currentBg === 'white') container.classList.add('white-bg');
+      if (currentBg === 'transparent') container.classList.add('transparent-bg');
+    });
+
+    // Resolution pills
+    document.getElementById('resPills').addEventListener('click', e => {
+      if (!e.target.classList.contains('pill-btn')) return;
+      document.querySelectorAll('#resPills .pill-btn').forEach(b => b.classList.remove('active'));
+      e.target.classList.add('active');
+      currentResolution = parseInt(e.target.getAttribute('data-res'), 10);
+    });
+
+    // Auto spin toggle
+    document.getElementById('btnAutoSpin').addEventListener('click', () => {
+      autoSpin = !autoSpin;
+      const btn = document.getElementById('btnAutoSpin');
+      btn.textContent = `Rotate: ${autoSpin ? 'On' : 'Off'}`;
+      btn.classList.toggle('active', autoSpin);
+    });
+
+    // Reset front view
+    document.getElementById('btnResetView').addEventListener('click', () => {
+      applyCameraPreset('front');
+    });
+
+    // Halo glow toggle
+    document.getElementById('btnLightBoost').addEventListener('click', () => {
+      haloGlow = !haloGlow;
+      document.getElementById('btnLightBoost').classList.toggle('active', haloGlow);
+      loadActiveToken();
+    });
+
+    // Download active token still
+    document.getElementById('btnDownloadActive').addEventListener('click', () => {
+      const def = YAKSHA_DEFS[currentYakshaId];
+      const isTransparent = (currentBg === 'transparent');
+      const data = renderStillToDataURL(
+        currentYakshaId,
+        currentMaterialMode,
+        currentResolution,
+        currentCameraPreset,
+        currentProjection,
+        isTransparent
+      );
+      const modeSuffix = currentMaterialMode;
+      const camSuffix = currentCameraPreset;
+      triggerDownload(data, `token_${def.name.toLowerCase()}_${camSuffix}_${modeSuffix}_${currentResolution}px.png`);
+    });
+
+    // Export all 4 color
+    document.getElementById('btnExportAllColor').addEventListener('click', () => {
+      YAKSHA_DEFS.forEach((def, idx) => {
+        setTimeout(() => {
+          const data = renderStillToDataURL(def.id, 'color', currentResolution, 'front', 'ortho', currentBg === 'transparent');
+          triggerDownload(data, `token_${def.name.toLowerCase()}_front_color_${currentResolution}px.png`);
+        }, idx * 300);
+      });
+    });
+
+    // Export all 4 sketch clay
+    document.getElementById('btnExportAllSketch').addEventListener('click', () => {
+      YAKSHA_DEFS.forEach((def, idx) => {
+        setTimeout(() => {
+          const data = renderStillToDataURL(def.id, 'sketch', currentResolution, 'front', 'ortho', currentBg === 'transparent');
+          triggerDownload(data, `token_${def.name.toLowerCase()}_front_sketch_clay_${currentResolution}px.png`);
+        }, idx * 300);
+      });
+    });
+
+    // --- INIT ---
+    window.addEventListener('DOMContentLoaded', () => {
+      initThree();
+      buildGalleryGrid();
+    });
+  </script>
+</body>
+</html>
