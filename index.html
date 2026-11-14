@@ -61,14 +61,101 @@
     }
 
     /* Living Background: Subtle Canvas Particles & Grain Overlay */
-    .ambient-canvas {
+    .ambient-canvas, .ladder-fluid-canvas {
       position: fixed;
       inset: 0;
       width: 100%;
       height: 100%;
       pointer-events: none;
       z-index: 0;
-      opacity: 0.75;
+      opacity: 0.88;
+    }
+
+    /* ==========================================================================
+       UNDERLYING WEBSITE SURFACE (Revealed as opening transition completes)
+       ========================================================================== */
+    #site-root {
+      opacity: 0;
+      transform: scale(0.978);
+      transition: opacity 0.72s cubic-bezier(0.22, 1, 0.36, 1), transform 0.88s cubic-bezier(0.22, 1, 0.36, 1);
+      will-change: opacity, transform;
+    }
+
+    #site-root.revealed {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    /* ==========================================================================
+       OPENING TRANSITION OVERLAY (#serpent-transition)
+       ========================================================================== */
+    #serpent-transition {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 99999;
+      background-color: #0d0a08;
+      overflow: hidden;
+      pointer-events: auto;
+      opacity: 1;
+      will-change: opacity;
+      cursor: pointer;
+    }
+
+    #serpent-transition.is-done {
+      display: none !important;
+      pointer-events: none !important;
+    }
+
+    #serpent-transition canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      will-change: opacity;
+    }
+
+    #serpent-vignette {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0;
+      background: radial-gradient(
+        circle at center,
+        rgba(13, 10, 8, 0) 36%,
+        rgba(216, 180, 100, 0.16) 66%,
+        rgba(158, 27, 34, 0.62) 100%
+      );
+      will-change: opacity;
+    }
+
+    #serpent-blackout {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0;
+      background: radial-gradient(circle at center, #0d0a08 28%, #070403 100%);
+      will-change: opacity;
+    }
+
+    .serpent-skip-hint {
+      position: absolute;
+      top: 24px;
+      right: 28px;
+      font-family: var(--font-mono, monospace);
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: rgba(230, 200, 138, 0.55);
+      background: rgba(13, 10, 8, 0.7);
+      padding: 6px 14px;
+      border: 1px solid rgba(212, 175, 55, 0.25);
+      border-radius: 20px;
+      pointer-events: none;
+      z-index: 100001;
+      user-select: none;
+      backdrop-filter: blur(8px);
     }
 
     .noise-overlay {
@@ -1370,15 +1457,25 @@
 </head>
 <body>
 
-  <!-- Living Ambient Canvas & Noise Texture -->
-  <canvas id="ambientCanvas" class="ambient-canvas" aria-hidden="true"></canvas>
+  <!-- Living Sacred Ladder Fluidity Canvas & Noise Texture -->
+  <canvas id="ladder-fluid-canvas" class="ladder-fluid-canvas" aria-hidden="true"></canvas>
   <div class="noise-overlay" aria-hidden="true"></div>
 
-  <!-- Scroll Progress Bar -->
-  <div id="scrollProgressBar" class="scroll-progress-bar" aria-hidden="true"></div>
+  <!-- Drop-in Cinematic Serpent Opening Transition -->
+  <div id="serpent-transition" aria-hidden="true" title="Click anywhere or press ESC to skip">
+    <div id="serpent-vignette"></div>
+    <div id="serpent-blackout"></div>
+    <div class="serpent-skip-hint">Click anywhere or ESC to skip</div>
+  </div>
 
-  <!-- Floating Section Pill Navigation -->
-  <nav class="floating-nav" id="floatingNav" aria-label="Quick Page Navigation">
+  <!-- Primary Website Container (Smoothly revealed upon serpent strike) -->
+  <div id="site-root">
+
+    <!-- Scroll Progress Bar -->
+    <div id="scrollProgressBar" class="scroll-progress-bar" aria-hidden="true"></div>
+
+    <!-- Floating Section Pill Navigation -->
+    <nav class="floating-nav" id="floatingNav" aria-label="Quick Page Navigation">
     <a href="#hero" class="active">Overview</a>
     <a href="#visuals">Visuals</a>
     <a href="#comparison">Compare</a>
@@ -1736,6 +1833,7 @@
       </div>
     </div>
   </div>
+  </div> <!-- /#site-root -->
 
   <!-- ==========================================================================
        CLIENT-SIDE SCRIPTS: INTERACTIONS, PARALLAX, GALLERY & DOWNLOAD FEEDBACK
@@ -2045,47 +2143,8 @@
     }, { passive: true });
 
     // -------------------------------------------------------------------------
-    // 12. LIVING BACKGROUND CANVAS (SLOW DRIFTING AMBIENT EMBERS/DUST)
+    // 12. LIVING BACKGROUND CANVAS (Handled by assets/ladder-fluidity.js)
     // -------------------------------------------------------------------------
-    const canvas = document.getElementById('ambientCanvas');
-    if (canvas) {
-      const ctx = canvas.getContext('2d');
-      let w, h;
-      function resizeCanvas() {
-        w = canvas.width = window.innerWidth;
-        h = canvas.height = window.innerHeight;
-      }
-      window.addEventListener('resize', resizeCanvas);
-      resizeCanvas();
-
-      // Create 24 ultra-subtle golden dust motes
-      const particles = Array.from({ length: 24 }, () => ({
-        x: Math.random() * w,
-        y: Math.random() * h,
-        radius: Math.random() * 1.5 + 0.5,
-        alpha: Math.random() * 0.4 + 0.1,
-        speedX: (Math.random() - 0.5) * 0.2,
-        speedY: (Math.random() * -0.3) - 0.08
-      }));
-
-      function renderAmbientParticles() {
-        ctx.clearRect(0, 0, w, h);
-        particles.forEach(p => {
-          p.x += p.speedX;
-          p.y += p.speedY;
-          if (p.y < 0) p.y = h;
-          if (p.x < 0) p.x = w;
-          if (p.x > w) p.x = 0;
-
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(212, 175, 55, ${p.alpha})`;
-          ctx.fill();
-        });
-        requestAnimationFrame(renderAmbientParticles);
-      }
-      renderAmbientParticles();
-    }
 
     // =========================================================================
     // SARPA DANSHA · 3D PIT-VIPER STRIKE INTERACTIVE SECTION
@@ -3537,5 +3596,11 @@
       initSerpentInteractive();
     });
   </script>
+
+  <!-- Sacred Ladder Fluidity Background Physics -->
+  <script src="assets/ladder-fluidity.js"></script>
+
+  <!-- Opening Cinematic Serpent Strike Transition -->
+  <script src="assets/serpent-transition.js"></script>
 </body>
 </html>
