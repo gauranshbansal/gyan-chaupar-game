@@ -804,19 +804,6 @@
       font-weight: 700;
     }
 
-    .serpent-phase-badge {
-      font-family: var(--font-mono);
-      font-size: 10px;
-      letter-spacing: 0.18em;
-      padding: 5px 12px;
-      border-radius: 20px;
-      border: 1px solid var(--line-bright);
-      background: rgba(20, 14, 10, 0.9);
-      color: var(--gold-bright);
-      text-transform: uppercase;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.5);
-    }
-
     .serpent-inspect-panel {
       position: absolute;
       bottom: 74px;
@@ -1595,7 +1582,6 @@
               <span class="serpent-indicator-dot"></span>
               <span class="serpent-tag-text">SARPA DANSHA · PIT-VIPER</span>
             </div>
-            <div id="serpentPhaseBadge" class="serpent-phase-badge">STALKING</div>
           </div>
 
           <!-- Inspect Mode Jaw Gape Slider Panel -->
@@ -1608,12 +1594,6 @@
           <!-- Sleek Bottom Interactive Controls Bar -->
           <div class="serpent-controls-bar">
             <button id="serpentBtnStrike" class="serpent-btn serpent-btn-strike" title="Trigger strike">STRIKE</button>
-            <button id="serpentBtnLoop" class="serpent-btn serpent-btn-toggle active" title="Toggle automatic attack cycle">
-              <span class="btn-dot"></span> AUTO LOOP
-            </button>
-            <button id="serpentBtnSlowMo" class="serpent-btn serpent-btn-toggle" title="Toggle slow motion">
-              <span class="btn-dot"></span> SLOW-MO
-            </button>
             <button id="serpentBtnInspect" class="serpent-btn serpent-btn-toggle" title="Orbit and inspect anatomy">
               <span class="btn-dot"></span> INSPECT 3D
             </button>
@@ -2117,7 +2097,6 @@
       const canvas = document.getElementById('serpentCanvas');
       const biteOverlay = document.getElementById('serpentBiteOverlay');
       const blackoutOverlay = document.getElementById('serpentBlackoutOverlay');
-      const phaseBadge = document.getElementById('serpentPhaseBadge');
       const inspectPanel = document.getElementById('serpentInspectPanel');
       const jawSlider = document.getElementById('serpentJawSlider');
       const jawVal = document.getElementById('serpentJawVal');
@@ -3199,7 +3178,7 @@
       const STATE = { STALK: 'STALK', WINDUP: 'WINDUP', LUNGE: 'LUNGE', BITE: 'BITE', HOLD_DARK: 'HOLD_DARK', RESET: 'RESET' };
       let currentState = STATE.STALK;
       let stateTime = 0, totalTime = 0;
-      let autoLoop = true, slowMo = false, inspectMode = false, inspectJawOpen = 0.0;
+      let inspectMode = false, inspectJawOpen = 0.0;
       let cameraShake = 0;
       let isVisible = true;
 
@@ -3235,7 +3214,6 @@
           stateTime = 0;
           biteOverlay.style.opacity = '0';
           blackoutOverlay.style.opacity = '0';
-          phaseBadge.textContent = 'INSPECTING';
           if (hintText) hintText.textContent = 'Drag to orbit · Scroll to zoom · Slider tests jaw & fangs';
         } else {
           inspectJawOpen = 0;
@@ -3337,20 +3315,6 @@
         triggerStrike();
       });
 
-      const btnLoop = document.getElementById('serpentBtnLoop');
-      btnLoop.addEventListener('click', (e) => {
-        e.stopPropagation();
-        autoLoop = !autoLoop;
-        btnLoop.classList.toggle('active', autoLoop);
-      });
-
-      const btnSlowMo = document.getElementById('serpentBtnSlowMo');
-      btnSlowMo.addEventListener('click', (e) => {
-        e.stopPropagation();
-        slowMo = !slowMo;
-        btnSlowMo.classList.toggle('active', slowMo);
-      });
-
       document.getElementById('serpentBtnInspect').addEventListener('click', (e) => {
         e.stopPropagation();
         setInspectMode(!inspectMode);
@@ -3399,7 +3363,7 @@
 
         const rawDt = Math.min((now - lastTime) / 1000, 0.05);
         lastTime = now;
-        const dt = rawDt * (slowMo ? 0.30 : 1.0);
+        const dt = rawDt;
 
         totalTime += dt;
         if (!inspectMode) stateTime += dt;
@@ -3429,7 +3393,6 @@
           coilTension = 0.85;
           tongueGroup.visible = false;
         } else if (currentState === STATE.STALK) {
-          phaseBadge.textContent = 'STALKING';
           jawOpen = 0.0;
           fangExtend = 0.0;
 
@@ -3443,14 +3406,8 @@
             tongueGroup.position.z = 0.18;
             tongueGroup.visible = false;
           }
-
-          if (autoLoop && stateTime > 3.2) {
-            currentState = STATE.WINDUP;
-            stateTime = 0;
-          }
         } else if (currentState === STATE.WINDUP) {
-          phaseBadge.textContent = 'WIND-UP';
-          const p = Math.min(stateTime / 0.62, 1);
+          const p = Math.min(stateTime / 0.18, 1);
           const ease = 1 - Math.pow(1 - p, 3);
           targetZ = THREE.MathUtils.lerp(-1.05, -2.25, ease);
           targetX = THREE.MathUtils.lerp(targetX, 0, ease * 0.8);
@@ -3466,8 +3423,7 @@
             stateTime = 0;
           }
         } else if (currentState === STATE.LUNGE) {
-          phaseBadge.textContent = 'STRIKING';
-          const p = Math.min(stateTime / 0.36, 1);
+          const p = Math.min(stateTime / 0.12, 1);
           const surge = Math.pow(p, 1.9);
           targetZ = THREE.MathUtils.lerp(-2.25, 3.22, surge);
           targetX = 0;
@@ -3484,8 +3440,7 @@
             biteOverlay.style.opacity = '0.95';
           }
         } else if (currentState === STATE.BITE) {
-          phaseBadge.textContent = 'BITE';
-          const p = Math.min(stateTime / 0.14, 1);
+          const p = Math.min(stateTime / 0.07, 1);
           const snap = Math.pow(p, 0.52);
           targetZ = 3.35; targetX = 0; targetY = 0.12;
           jawOpen = THREE.MathUtils.lerp(1.0, 0.0, snap);
@@ -3498,19 +3453,17 @@
             stateTime = 0;
           }
         } else if (currentState === STATE.HOLD_DARK) {
-          phaseBadge.textContent = 'DEVOURING';
           targetZ = 3.35; targetX = 0; targetY = 0.12;
           jawOpen = 0.0; fangExtend = 0.0;
           coilTension = 0.5;
           blackoutOverlay.style.opacity = '1';
           biteOverlay.style.opacity = '0.38';
-          if (stateTime > 0.62) {
+          if (stateTime > 0.14) {
             currentState = STATE.RESET;
             stateTime = 0;
           }
         } else if (currentState === STATE.RESET) {
-          phaseBadge.textContent = 'RECOILING';
-          const p = Math.min(stateTime / 1.18, 1);
+          const p = Math.min(stateTime / 0.38, 1);
           const ease = 1 - Math.pow(1 - p, 2.5);
           targetZ = THREE.MathUtils.lerp(3.35, -1.05, ease);
           targetX = THREE.MathUtils.lerp(0, mouse.x * 0.42, ease);
