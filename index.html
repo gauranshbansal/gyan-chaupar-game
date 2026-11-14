@@ -61,14 +61,14 @@
     }
 
     /* Living Background: Subtle Canvas Particles & Grain Overlay */
-    .ambient-canvas, .ladder-fluid-canvas {
+    .ambient-canvas {
       position: fixed;
       inset: 0;
       width: 100%;
       height: 100%;
       pointer-events: none;
       z-index: 0;
-      opacity: 0.88;
+      opacity: 0.75;
     }
 
     /* ==========================================================================
@@ -1457,8 +1457,8 @@
 </head>
 <body>
 
-  <!-- Living Sacred Ladder Fluidity Canvas & Noise Texture -->
-  <canvas id="ladder-fluid-canvas" class="ladder-fluid-canvas" aria-hidden="true"></canvas>
+  <!-- Living Ambient Canvas & Noise Texture -->
+  <canvas id="ambientCanvas" class="ambient-canvas" aria-hidden="true"></canvas>
   <div class="noise-overlay" aria-hidden="true"></div>
 
   <!-- Drop-in Cinematic Serpent Opening Transition -->
@@ -2143,8 +2143,47 @@
     }, { passive: true });
 
     // -------------------------------------------------------------------------
-    // 12. LIVING BACKGROUND CANVAS (Handled by assets/ladder-fluidity.js)
+    // 12. LIVING BACKGROUND CANVAS (SLOW DRIFTING AMBIENT EMBERS/DUST)
     // -------------------------------------------------------------------------
+    const canvas = document.getElementById('ambientCanvas');
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      let w, h;
+      function resizeCanvas() {
+        w = canvas.width = window.innerWidth;
+        h = canvas.height = window.innerHeight;
+      }
+      window.addEventListener('resize', resizeCanvas);
+      resizeCanvas();
+
+      // Create 24 ultra-subtle golden dust motes
+      const particles = Array.from({ length: 24 }, () => ({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        radius: Math.random() * 1.5 + 0.5,
+        alpha: Math.random() * 0.4 + 0.1,
+        speedX: (Math.random() - 0.5) * 0.2,
+        speedY: (Math.random() * -0.3) - 0.08
+      }));
+
+      function renderAmbientParticles() {
+        ctx.clearRect(0, 0, w, h);
+        particles.forEach(p => {
+          p.x += p.speedX;
+          p.y += p.speedY;
+          if (p.y < 0) p.y = h;
+          if (p.x < 0) p.x = w;
+          if (p.x > w) p.x = 0;
+
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(212, 175, 55, ${p.alpha})`;
+          ctx.fill();
+        });
+        requestAnimationFrame(renderAmbientParticles);
+      }
+      renderAmbientParticles();
+    }
 
     // =========================================================================
     // SARPA DANSHA · 3D PIT-VIPER STRIKE INTERACTIVE SECTION
@@ -3596,9 +3635,6 @@
       initSerpentInteractive();
     });
   </script>
-
-  <!-- Sacred Ladder Fluidity Background Physics -->
-  <script src="assets/ladder-fluidity.js"></script>
 
   <!-- Opening Cinematic Serpent Strike Transition -->
   <script src="assets/serpent-transition.js"></script>
