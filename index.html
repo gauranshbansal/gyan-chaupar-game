@@ -11,6 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Yatra+One&family=Playfair+Display:ital,wght@0,500;1,400&display=swap" rel="stylesheet">
+  <script src="assets/three.min.js"></script>
 
   <style>
     /* ==========================================================================
@@ -707,6 +708,294 @@
     }
 
     /* ==========================================================================
+       SERPENT OF VICE (3D PIT-VIPER STRIKE INTERACTIVE SECTION)
+       ========================================================================== */
+    .serpent-wrapper {
+      position: relative;
+      width: 100%;
+      margin-bottom: 50px;
+    }
+
+    .serpent-viewport {
+      position: relative;
+      width: 100%;
+      height: 520px;
+      border: 1px solid var(--line);
+      background: rgba(15, 11, 8, 0.35);
+      border-radius: 4px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+      user-select: none;
+      -webkit-user-select: none;
+      cursor: crosshair;
+    }
+
+    .serpent-viewport.inspect-active {
+      cursor: grab;
+    }
+
+    .serpent-viewport.inspect-active:active {
+      cursor: grabbing;
+    }
+
+    #serpentCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      background: transparent;
+    }
+
+    #serpentBiteOverlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0;
+      background: radial-gradient(circle at center, rgba(15, 11, 8, 0.15) 12%, rgba(139, 30, 30, 0.82) 64%, rgba(15, 6, 5, 0.98) 100%);
+      box-shadow: inset 0 0 90px rgba(232, 205, 154, 0.25);
+      transition: opacity 0.06s ease-out;
+      z-index: 10;
+    }
+
+    #serpentBlackoutOverlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0;
+      background: radial-gradient(circle at center, #140806 0%, #070403 70%);
+      z-index: 11;
+    }
+
+    .serpent-hud-header {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      right: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      pointer-events: none;
+      z-index: 15;
+    }
+
+    .serpent-hud-tag {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(15, 11, 8, 0.85);
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1px solid var(--line);
+      backdrop-filter: blur(8px);
+    }
+
+    .serpent-indicator-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #c53d24;
+      box-shadow: 0 0 8px #c53d24;
+    }
+
+    .serpent-tag-text {
+      font-family: var(--font-display);
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      color: var(--gold-bright);
+      font-weight: 700;
+    }
+
+    .serpent-phase-badge {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      padding: 5px 12px;
+      border-radius: 20px;
+      border: 1px solid var(--line-bright);
+      background: rgba(20, 14, 10, 0.9);
+      color: var(--gold-bright);
+      text-transform: uppercase;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+    }
+
+    .serpent-inspect-panel {
+      position: absolute;
+      bottom: 74px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 20;
+      display: none;
+      align-items: center;
+      gap: 12px;
+      background: rgba(18, 14, 10, 0.92);
+      border: 1px solid var(--line-bright);
+      padding: 8px 18px;
+      border-radius: 30px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+      width: 90%;
+      max-width: 380px;
+    }
+
+    .serpent-inspect-panel.visible {
+      display: flex;
+    }
+
+    .inspect-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      color: var(--gold-bright);
+      white-space: nowrap;
+    }
+
+    .inspect-val {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--gold);
+      min-width: 32px;
+      text-align: right;
+    }
+
+    .serpent-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      flex: 1;
+      height: 4px;
+      background: rgba(212, 175, 55, 0.3);
+      border-radius: 999px;
+      outline: none;
+    }
+
+    .serpent-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #fae8b8, #d4af37);
+      border: 1px solid #090705;
+      box-shadow: 0 0 10px rgba(212, 175, 55, 0.7);
+      cursor: pointer;
+    }
+
+    .serpent-controls-bar {
+      position: absolute;
+      bottom: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 20;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: rgba(15, 11, 8, 0.88);
+      border: 1px solid var(--line);
+      padding: 6px 12px;
+      border-radius: 40px;
+      backdrop-filter: blur(14px);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.75);
+      width: max-content;
+      max-width: 95%;
+    }
+
+    .serpent-btn {
+      padding: 7px 14px;
+      border-radius: 20px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.18s ease;
+      background: rgba(26, 20, 14, 0.8);
+      border: 1px solid var(--line);
+      color: var(--dim);
+    }
+
+    .serpent-btn:hover {
+      border-color: var(--gold);
+      color: var(--cream);
+      background: rgba(212, 175, 55, 0.15);
+    }
+
+    .serpent-btn-strike {
+      background: linear-gradient(135deg, #fae8b8 0%, #d4af37 60%, #8a6a24 100%);
+      color: #0c0906;
+      border-color: var(--gold-bright);
+      box-shadow: 0 0 18px rgba(212, 175, 55, 0.35);
+    }
+
+    .serpent-btn-strike:hover {
+      filter: brightness(1.1);
+      box-shadow: 0 0 24px rgba(212, 175, 55, 0.6);
+      color: #000;
+    }
+
+    .serpent-btn-strike:active {
+      transform: scale(0.96);
+    }
+
+    .serpent-btn.active {
+      background: rgba(212, 175, 55, 0.22);
+      border-color: var(--gold);
+      color: var(--gold-bright);
+      box-shadow: 0 0 12px rgba(212, 175, 55, 0.25);
+    }
+
+    .btn-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: rgba(212, 175, 55, 0.3);
+      transition: all 0.2s ease;
+    }
+
+    .serpent-btn.active .btn-dot {
+      background: var(--gold-bright);
+      box-shadow: 0 0 6px var(--gold-bright);
+    }
+
+    .serpent-hint-text {
+      position: absolute;
+      bottom: -22px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      color: var(--dim);
+      text-transform: uppercase;
+      pointer-events: none;
+    }
+
+    @media (max-width: 768px) {
+      .serpent-viewport {
+        height: 380px;
+      }
+      .serpent-controls-bar {
+        bottom: 8px;
+        padding: 4px 8px;
+        gap: 6px;
+      }
+      .serpent-btn {
+        padding: 5px 10px;
+        font-size: 9px;
+      }
+      .serpent-inspect-panel {
+        bottom: 56px;
+        padding: 6px 12px;
+      }
+      .serpent-hint-text {
+        display: none;
+      }
+    }
+
+    /* ==========================================================================
        FOUR GUARDIANS (YAKSHA PANTHEON)
        ========================================================================== */
     .yakshas-row {
@@ -1106,6 +1395,7 @@
     <a href="#hero" class="active">Overview</a>
     <a href="#visuals">Visuals</a>
     <a href="#comparison">Compare</a>
+    <a href="#serpent">Serpent</a>
     <a href="#guardians">Guardians</a>
     <a href="#install">Install</a>
   </nav>
@@ -1282,6 +1572,56 @@
         <!-- Draggable Handle -->
         <div class="comparison-handle" id="comparisonHandle">
           <div class="handle-circle">↔</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION: SARPA DANSHA (3D PIT-VIPER STRIKE) -->
+    <section class="fade-in-section" id="serpent">
+      <div class="section-title">
+        Sarpa Dansha · Serpent of Vice
+        <span class="sub">[Interactive 3D Pit-Viper · Move Cursor to Lure · Click to Strike]</span>
+      </div>
+
+      <div class="serpent-wrapper">
+        <div class="serpent-viewport" id="serpentContainer">
+          <canvas id="serpentCanvas"></canvas>
+          <div id="serpentBiteOverlay"></div>
+          <div id="serpentBlackoutOverlay"></div>
+
+          <!-- Minimalist In-Section Header Badge -->
+          <div class="serpent-hud-header">
+            <div class="serpent-hud-tag">
+              <span class="serpent-indicator-dot"></span>
+              <span class="serpent-tag-text">SARPA DANSHA · PIT-VIPER</span>
+            </div>
+            <div id="serpentPhaseBadge" class="serpent-phase-badge">STALKING</div>
+          </div>
+
+          <!-- Inspect Mode Jaw Gape Slider Panel -->
+          <div id="serpentInspectPanel" class="serpent-inspect-panel">
+            <span class="inspect-label">JAW GAPE</span>
+            <input id="serpentJawSlider" type="range" min="0" max="100" value="0" class="serpent-slider" />
+            <span id="serpentJawVal" class="inspect-val">0°</span>
+          </div>
+
+          <!-- Sleek Bottom Interactive Controls Bar -->
+          <div class="serpent-controls-bar">
+            <button id="serpentBtnStrike" class="serpent-btn serpent-btn-strike" title="Trigger strike">STRIKE</button>
+            <button id="serpentBtnLoop" class="serpent-btn serpent-btn-toggle active" title="Toggle automatic attack cycle">
+              <span class="btn-dot"></span> AUTO LOOP
+            </button>
+            <button id="serpentBtnSlowMo" class="serpent-btn serpent-btn-toggle" title="Toggle slow motion">
+              <span class="btn-dot"></span> SLOW-MO
+            </button>
+            <button id="serpentBtnInspect" class="serpent-btn serpent-btn-toggle" title="Orbit and inspect anatomy">
+              <span class="btn-dot"></span> INSPECT 3D
+            </button>
+          </div>
+
+          <div id="serpentHintText" class="serpent-hint-text">
+            Move cursor over viper to lure · Click canvas or tap Strike to attack
+          </div>
         </div>
       </div>
     </section>
@@ -1766,6 +2106,1483 @@
       }
       renderAmbientParticles();
     }
+
+    // =========================================================================
+    // SARPA DANSHA · 3D PIT-VIPER STRIKE INTERACTIVE SECTION
+    // =========================================================================
+    function initSerpentInteractive() {
+      if (typeof THREE === 'undefined') return;
+
+      const container = document.getElementById('serpentContainer');
+      const canvas = document.getElementById('serpentCanvas');
+      const biteOverlay = document.getElementById('serpentBiteOverlay');
+      const blackoutOverlay = document.getElementById('serpentBlackoutOverlay');
+      const phaseBadge = document.getElementById('serpentPhaseBadge');
+      const inspectPanel = document.getElementById('serpentInspectPanel');
+      const jawSlider = document.getElementById('serpentJawSlider');
+      const jawVal = document.getElementById('serpentJawVal');
+      const hintText = document.getElementById('serpentHintText');
+
+      if (!container || !canvas) return;
+
+      // 1. PROCEDURAL PBR TEXTURES
+      function createHeadScaleTextures() {
+        const size = 1024, cols = 22, rows = 22;
+        const cellW = size / cols, cellH = size / rows;
+        const diffCanvas = document.createElement('canvas');
+        const bumpCanvas = document.createElement('canvas');
+        const roughCanvas = document.createElement('canvas');
+        diffCanvas.width = bumpCanvas.width = roughCanvas.width = size;
+        diffCanvas.height = bumpCanvas.height = roughCanvas.height = size;
+        const dCtx = diffCanvas.getContext('2d');
+        const bCtx = bumpCanvas.getContext('2d');
+        const rCtx = roughCanvas.getContext('2d');
+
+        dCtx.fillStyle = '#0B0806'; dCtx.fillRect(0, 0, size, size);
+        bCtx.fillStyle = '#060606'; bCtx.fillRect(0, 0, size, size);
+        rCtx.fillStyle = '#DCDCDC'; rCtx.fillRect(0, 0, size, size);
+
+        for (let row = -1; row <= rows + 1; row++) {
+          for (let col = -1; col <= cols + 1; col++) {
+            const offsetX = (row % 2 === 0) ? 0 : cellW * 0.5;
+            const cx = col * cellW + offsetX;
+            const cy = row * cellH;
+            const rx = cellW * 0.56, ry = cellH * 0.72;
+            const nx = (col / cols) - 0.5, ny = (row / rows) - 0.5;
+            const diamondWave = Math.abs(Math.abs(nx) * 2.1 - (0.34 + Math.sin(ny * Math.PI * 4) * 0.14));
+            const isGoldAccent = diamondWave < 0.085;
+            const isCrimsonAccent = !isGoldAccent && diamondWave < 0.125 && (row % 2 === 0);
+
+            const traceScale = (ctx) => {
+              ctx.beginPath();
+              ctx.moveTo(cx, cy - ry);
+              ctx.quadraticCurveTo(cx + rx * 1.04, cy - ry * 0.12, cx + rx * 0.74, cy + ry * 0.48);
+              ctx.quadraticCurveTo(cx, cy + ry * 1.04, cx - rx * 0.74, cy + ry * 0.48);
+              ctx.quadraticCurveTo(cx - rx * 1.04, cy - ry * 0.12, cx, cy - ry);
+              ctx.closePath();
+            };
+
+            traceScale(dCtx);
+            const dGrad = dCtx.createLinearGradient(cx, cy - ry, cx, cy + ry);
+            if (isGoldAccent) {
+              dGrad.addColorStop(0.0, '#2B1F11');
+              dGrad.addColorStop(0.45, '#8C6A2E');
+              dGrad.addColorStop(0.82, '#C69C4E');
+              dGrad.addColorStop(1.0, '#2A1D0E');
+            } else if (isCrimsonAccent) {
+              dGrad.addColorStop(0.0, '#1A0A08');
+              dGrad.addColorStop(0.55, '#4A1414');
+              dGrad.addColorStop(0.85, '#731C1C');
+              dGrad.addColorStop(1.0, '#160907');
+            } else {
+              dGrad.addColorStop(0.0, '#120D09');
+              dGrad.addColorStop(0.45, '#1F1711');
+              dGrad.addColorStop(0.82, '#2E2217');
+              dGrad.addColorStop(1.0, '#140E0A');
+            }
+            dCtx.fillStyle = dGrad;
+            dCtx.fill();
+            dCtx.strokeStyle = isGoldAccent ? 'rgba(232, 205, 154, 0.65)' : 'rgba(198, 156, 78, 0.24)';
+            dCtx.lineWidth = 1.5;
+            dCtx.stroke();
+
+            traceScale(bCtx);
+            const bGrad = bCtx.createRadialGradient(cx, cy, rx * 0.08, cx, cy, ry);
+            bGrad.addColorStop(0.0, '#DFDFDF');
+            bGrad.addColorStop(0.65, '#848484');
+            bGrad.addColorStop(1.0, '#121212');
+            bCtx.fillStyle = bGrad;
+            bCtx.fill();
+            bCtx.beginPath();
+            bCtx.moveTo(cx, cy - ry * 0.68);
+            bCtx.lineTo(cx, cy + ry * 0.74);
+            bCtx.strokeStyle = '#FFFFFF';
+            bCtx.lineWidth = 2.6;
+            bCtx.stroke();
+
+            traceScale(rCtx);
+            const rGrad = rCtx.createRadialGradient(cx, cy, rx * 0.1, cx, cy, ry);
+            rGrad.addColorStop(0.0, isGoldAccent ? '#2C2C2C' : '#444444');
+            rGrad.addColorStop(0.75, '#7E7E7E');
+            rGrad.addColorStop(1.0, '#E2E2E2');
+            rCtx.fillStyle = rGrad;
+            rCtx.fill();
+          }
+        }
+
+        const makeTex = (c, rx, ry) => {
+          const tex = new THREE.CanvasTexture(c);
+          tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+          tex.repeat.set(rx, ry);
+          tex.anisotropy = 8;
+          return tex;
+        };
+
+        return {
+          map: makeTex(diffCanvas, 1.4, 1.4),
+          bumpMap: makeTex(bumpCanvas, 1.4, 1.4),
+          roughnessMap: makeTex(roughCanvas, 1.4, 1.4)
+        };
+      }
+
+      function createBodyScaleTextures() {
+        const size = 1024;
+        const diffCanvas = document.createElement('canvas');
+        const bumpCanvas = document.createElement('canvas');
+        const roughCanvas = document.createElement('canvas');
+        diffCanvas.width = bumpCanvas.width = roughCanvas.width = size;
+        diffCanvas.height = bumpCanvas.height = roughCanvas.height = size;
+        const dCtx = diffCanvas.getContext('2d');
+        const bCtx = bumpCanvas.getContext('2d');
+        const rCtx = roughCanvas.getContext('2d');
+
+        dCtx.fillStyle = '#0A0705'; dCtx.fillRect(0, 0, size, size);
+        bCtx.fillStyle = '#080808'; bCtx.fillRect(0, 0, size, size);
+        rCtx.fillStyle = '#D8D8D8'; rCtx.fillRect(0, 0, size, size);
+
+        const cols = 24, rows = 26;
+        const cellW = size / cols, cellH = size / rows;
+
+        for (let row = -1; row <= rows + 1; row++) {
+          for (let col = -1; col <= cols + 1; col++) {
+            const offsetX = (row % 2 === 0) ? 0 : cellW * 0.5;
+            const cx = col * cellW + offsetX;
+            const cy = row * cellH;
+            const u = cx / size;
+            if (u < 0.13 || u > 0.87) continue;
+
+            const rx = cellW * 0.57, ry = cellH * 0.72;
+            const distFromDorsal = Math.abs(u - 0.5);
+            const vPhase = ((row / rows) * 3.0) % 1.0;
+            const diamondHalfW = 0.16 * (1.0 - Math.abs(vPhase - 0.5) * 2.0);
+            const onGoldBorder = Math.abs(distFromDorsal - diamondHalfW) < 0.032;
+            const insideCrimsonDiamond = distFromDorsal < Math.max(0, diamondHalfW - 0.032);
+
+            const traceScale = (ctx) => {
+              ctx.beginPath();
+              ctx.moveTo(cx, cy - ry);
+              ctx.quadraticCurveTo(cx + rx * 1.04, cy - ry * 0.12, cx + rx * 0.72, cy + ry * 0.48);
+              ctx.quadraticCurveTo(cx, cy + ry * 1.04, cx - rx * 0.72, cy + ry * 0.48);
+              ctx.quadraticCurveTo(cx - rx * 1.04, cy - ry * 0.12, cx, cy - ry);
+              ctx.closePath();
+            };
+
+            traceScale(dCtx);
+            const dGrad = dCtx.createLinearGradient(cx, cy - ry, cx, cy + ry);
+            if (onGoldBorder) {
+              dGrad.addColorStop(0.0, '#362612');
+              dGrad.addColorStop(0.45, '#C69C4E');
+              dGrad.addColorStop(0.82, '#E8CD9A');
+              dGrad.addColorStop(1.0, '#3D2B14');
+            } else if (insideCrimsonDiamond) {
+              dGrad.addColorStop(0.0, '#220908');
+              dGrad.addColorStop(0.50, '#5E1616');
+              dGrad.addColorStop(0.82, '#8B1E1E');
+              dGrad.addColorStop(1.0, '#1B0807');
+            } else {
+              dGrad.addColorStop(0.0, '#110C09');
+              dGrad.addColorStop(0.50, '#1E1610');
+              dGrad.addColorStop(0.84, '#2C2116');
+              dGrad.addColorStop(1.0, '#120D09');
+            }
+            dCtx.fillStyle = dGrad;
+            dCtx.fill();
+            dCtx.strokeStyle = onGoldBorder ? 'rgba(243, 223, 180, 0.7)' : 'rgba(140, 106, 46, 0.25)';
+            dCtx.lineWidth = 1.4;
+            dCtx.stroke();
+
+            traceScale(bCtx);
+            const bGrad = bCtx.createRadialGradient(cx, cy, rx * 0.08, cx, cy, ry);
+            bGrad.addColorStop(0.0, '#E2E2E2');
+            bGrad.addColorStop(0.65, '#828282');
+            bGrad.addColorStop(1.0, '#101010');
+            bCtx.fillStyle = bGrad;
+            bCtx.fill();
+            bCtx.beginPath();
+            bCtx.moveTo(cx, cy - ry * 0.65);
+            bCtx.lineTo(cx, cy + ry * 0.72);
+            bCtx.strokeStyle = '#FFFFFF';
+            bCtx.lineWidth = 2.4;
+            bCtx.stroke();
+
+            traceScale(rCtx);
+            const rGrad = rCtx.createRadialGradient(cx, cy, rx * 0.1, cx, cy, ry);
+            rGrad.addColorStop(0.0, onGoldBorder ? '#2A2A2A' : '#464646');
+            rGrad.addColorStop(0.75, '#828282');
+            rGrad.addColorStop(1.0, '#DFDFDF');
+            rCtx.fillStyle = rGrad;
+            rCtx.fill();
+          }
+        }
+
+        const scuteRows = 32, scuteH = size / scuteRows;
+        const drawBellyBand = (xStart, width) => {
+          for (let r = 0; r < scuteRows; r++) {
+            const y = r * scuteH;
+            const grad = dCtx.createLinearGradient(0, y, 0, y + scuteH);
+            grad.addColorStop(0.0, '#3D2B14');
+            grad.addColorStop(0.35, '#8C6A2E');
+            grad.addColorStop(0.75, '#C69C4E');
+            grad.addColorStop(0.95, '#E8CD9A');
+            grad.addColorStop(1.0, '#1A1109');
+            dCtx.fillStyle = grad;
+            dCtx.fillRect(xStart, y, width, scuteH - 1.5);
+
+            const bGrad = bCtx.createLinearGradient(0, y, 0, y + scuteH);
+            bGrad.addColorStop(0.0, '#303030');
+            bGrad.addColorStop(0.7, '#D4D4D4');
+            bGrad.addColorStop(1.0, '#121212');
+            bCtx.fillStyle = bGrad;
+            bCtx.fillRect(xStart, y, width, scuteH - 1.5);
+
+            rCtx.fillStyle = '#3C3C3C';
+            rCtx.fillRect(xStart, y, width, scuteH - 1.5);
+          }
+        };
+
+        drawBellyBand(0, size * 0.145);
+        drawBellyBand(size * 0.855, size * 0.145);
+
+        const makeTex = (c) => {
+          const tex = new THREE.CanvasTexture(c);
+          tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+          tex.repeat.set(1, 5.5);
+          tex.anisotropy = 8;
+          return tex;
+        };
+
+        return {
+          map: makeTex(diffCanvas),
+          bumpMap: makeTex(bumpCanvas),
+          roughnessMap: makeTex(roughCanvas)
+        };
+      }
+
+      function createMouthTissueTextures() {
+        const size = 512;
+        const diffCanvas = document.createElement('canvas');
+        const bumpCanvas = document.createElement('canvas');
+        diffCanvas.width = bumpCanvas.width = size;
+        diffCanvas.height = bumpCanvas.height = size;
+        const dCtx = diffCanvas.getContext('2d');
+        const bCtx = bumpCanvas.getContext('2d');
+
+        const baseGrad = dCtx.createLinearGradient(0, 0, 0, size);
+        baseGrad.addColorStop(0, '#581010');
+        baseGrad.addColorStop(0.5, '#8B1E1E');
+        baseGrad.addColorStop(1, '#4C0D0D');
+        dCtx.fillStyle = baseGrad;
+        dCtx.fillRect(0, 0, size, size);
+
+        bCtx.fillStyle = '#707070';
+        bCtx.fillRect(0, 0, size, size);
+
+        for (let i = 0; i < 95; i++) {
+          const x = Math.random() * size, y = Math.random() * size;
+          const len = 45 + Math.random() * 140, w = 2 + Math.random() * 6;
+          dCtx.strokeStyle = i % 3 === 0 ? 'rgba(176, 42, 42, 0.25)' : 'rgba(55, 8, 8, 0.30)';
+          dCtx.lineWidth = w;
+          dCtx.beginPath();
+          dCtx.moveTo(x, y);
+          dCtx.quadraticCurveTo(x + (Math.random() - 0.5) * 40, y + len * 0.5, x + (Math.random() - 0.5) * 20, y + len);
+          dCtx.stroke();
+
+          bCtx.strokeStyle = i % 2 === 0 ? 'rgba(210, 210, 210, 0.35)' : 'rgba(30, 30, 30, 0.35)';
+          bCtx.lineWidth = w * 0.8;
+          bCtx.beginPath();
+          bCtx.moveTo(x, y);
+          bCtx.quadraticCurveTo(x + (Math.random() - 0.5) * 40, y + len * 0.5, x + (Math.random() - 0.5) * 20, y + len);
+          bCtx.stroke();
+        }
+
+        const map = new THREE.CanvasTexture(diffCanvas);
+        const bumpMap = new THREE.CanvasTexture(bumpCanvas);
+        map.wrapS = map.wrapT = bumpMap.wrapS = bumpMap.wrapT = THREE.RepeatWrapping;
+        return { map, bumpMap };
+      }
+
+      function createViperEyeTexture() {
+        const size = 512;
+        const cCanvas = document.createElement('canvas');
+        cCanvas.width = cCanvas.height = size;
+        const ctx = cCanvas.getContext('2d');
+        const c = size / 2;
+
+        ctx.fillStyle = '#0D0604';
+        ctx.fillRect(0, 0, size, size);
+
+        const irisR = c * 0.86;
+        const irisGrad = ctx.createRadialGradient(c, c, irisR * 0.08, c, c, irisR);
+        irisGrad.addColorStop(0.0, '#FFF5D1');
+        irisGrad.addColorStop(0.28, '#F2D28B');
+        irisGrad.addColorStop(0.58, '#D99B38');
+        irisGrad.addColorStop(0.82, '#9E4C1B');
+        irisGrad.addColorStop(0.94, '#3D120A');
+        irisGrad.addColorStop(1.0, '#0C0503');
+
+        ctx.fillStyle = irisGrad;
+        ctx.beginPath();
+        ctx.arc(c, c, irisR, 0, Math.PI * 2);
+        ctx.fill();
+
+        for (let i = 0; i < 160; i++) {
+          const angle = (i / 160) * Math.PI * 2 + (Math.random() - 0.5) * 0.03;
+          const rInner = irisR * (0.14 + Math.random() * 0.12);
+          const rOuter = irisR * (0.76 + Math.random() * 0.18);
+          ctx.beginPath();
+          ctx.moveTo(c + Math.cos(angle) * rInner, c + Math.sin(angle) * rInner);
+          ctx.lineTo(c + Math.cos(angle) * rOuter, c + Math.sin(angle) * rOuter);
+          ctx.strokeStyle = (i % 3 === 0) ? 'rgba(255, 244, 200, 0.42)' : (i % 2 === 0 ? 'rgba(139, 30, 30, 0.34)' : 'rgba(60, 20, 8, 0.45)');
+          ctx.lineWidth = 1.2 + Math.random() * 1.8;
+          ctx.stroke();
+        }
+
+        ctx.beginPath();
+        ctx.arc(c, c, irisR * 0.94, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(15, 7, 4, 0.85)';
+        ctx.lineWidth = 10;
+        ctx.stroke();
+
+        ctx.save();
+        ctx.beginPath();
+        const pupilH = irisR * 0.86;
+        const pupilW = irisR * 0.145;
+        ctx.moveTo(c, c - pupilH);
+        ctx.quadraticCurveTo(c + pupilW, c, c, c + pupilH);
+        ctx.quadraticCurveTo(c - pupilW, c, c, c - pupilH);
+        ctx.closePath();
+        ctx.fillStyle = '#030202';
+        ctx.fill();
+
+        ctx.strokeStyle = 'rgba(255, 240, 195, 0.72)';
+        ctx.lineWidth = 2.2;
+        ctx.stroke();
+        ctx.restore();
+
+        const tex = new THREE.CanvasTexture(cCanvas);
+        tex.anisotropy = 8;
+        return tex;
+      }
+
+      function createDustTexture() {
+        const size = 64;
+        const cCanvas = document.createElement('canvas');
+        cCanvas.width = cCanvas.height = size;
+        const ctx = cCanvas.getContext('2d');
+        const c = size / 2;
+        const grad = ctx.createRadialGradient(c, c, 0, c, c, c);
+        grad.addColorStop(0, 'rgba(243, 223, 180, 1)');
+        grad.addColorStop(0.35, 'rgba(198, 156, 78, 0.55)');
+        grad.addColorStop(1, 'rgba(198, 156, 78, 0)');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, size, size);
+        return new THREE.CanvasTexture(cCanvas);
+      }
+
+      // 2. PARAMETRIC GEOMETRY GENERATORS
+      function viperHalfWidthAt(t) {
+        if (t < 0.28) {
+          const u = t / 0.28;
+          return 0.52 + Math.sin(u * Math.PI * 0.5) * 0.44;
+        } else {
+          const u = (t - 0.28) / 0.72;
+          return 0.96 * Math.pow(1.0 - u, 0.72) + 0.16 * (1.0 - u * 0.35);
+        }
+      }
+
+      function createUpperSkullGeometry() {
+        const segZ = 44, segTheta = 40;
+        const zMin = -0.88, zMax = 1.32;
+        const positions = [], uvs = [], indices = [];
+
+        for (let iz = 0; iz <= segZ; iz++) {
+          const tz = iz / segZ;
+          const z = zMin + tz * (zMax - zMin);
+          const endCap = Math.sin(Math.min(1, tz * 6.5) * Math.PI * 0.5) * Math.sin(Math.min(1, (1 - tz) * 7.5) * Math.PI * 0.5);
+          const halfW = viperHalfWidthAt(tz) * endCap;
+          const crownH = (0.48 * (1.0 - tz * 0.36) + Math.sin(tz * Math.PI) * 0.14) * endCap;
+          const snoutLift = Math.pow(Math.max(0, (tz - 0.72) / 0.28), 2.0) * 0.09;
+
+          for (let it = 0; it <= segTheta; it++) {
+            const tt = it / segTheta;
+            const theta = tt * Math.PI * 2;
+            const cosT = Math.cos(theta), sinT = Math.sin(theta);
+            let x = cosT * halfW, y = 0;
+
+            if (sinT >= 0) {
+              y = Math.pow(sinT, 0.78) * crownH + snoutLift;
+              if (tz > 0.32 && tz < 0.78 && Math.abs(cosT) < 0.45) {
+                const groove = (1.0 - Math.abs(cosT) / 0.45) * Math.sin(((tz - 0.32) / 0.46) * Math.PI);
+                y -= groove * 0.065;
+              }
+              const eyeZDist = (z - 0.40) / 0.24;
+              const eyeSideDist = (Math.abs(cosT) - 0.72) / 0.32;
+              const eyeVertDist = (sinT - 0.45) / 0.45;
+              const dEye = Math.sqrt(eyeZDist * eyeZDist + eyeSideDist * eyeSideDist + eyeVertDist * eyeVertDist);
+              if (dEye < 1.0) {
+                const indent = Math.cos(dEye * Math.PI * 0.5) * 0.12;
+                x -= Math.sign(x) * indent;
+                y -= indent * 0.25;
+              }
+            } else {
+              const innerArch = Math.pow(-sinT, 0.75);
+              y = innerArch * 0.075 + snoutLift * 0.4;
+            }
+
+            positions.push(x, y, z);
+            uvs.push(tt * 1.5, tz * 1.5);
+          }
+        }
+
+        for (let iz = 0; iz < segZ; iz++) {
+          for (let it = 0; it < segTheta; it++) {
+            const a = iz * (segTheta + 1) + it;
+            const b = a + (segTheta + 1);
+            indices.push(a, a + 1, b);
+            indices.push(b, a + 1, b + 1);
+          }
+        }
+
+        const geo = new THREE.BufferGeometry();
+        geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+        geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+        geo.setIndex(indices);
+        geo.computeVertexNormals();
+        return geo;
+      }
+
+      function createBrowRidgeGeometry(side) {
+        const curve = new THREE.CatmullRomCurve3([
+          new THREE.Vector3(side * 0.27, 0.37, 0.72),
+          new THREE.Vector3(side * 0.47, 0.43, 0.50),
+          new THREE.Vector3(side * 0.62, 0.41, 0.18),
+          new THREE.Vector3(side * 0.78, 0.33, -0.22)
+        ]);
+
+        const segs = 22, radSegs = 10;
+        const geo = new THREE.TubeGeometry(curve, segs, 0.082, radSegs, false);
+        const pos = geo.attributes.position;
+
+        for (let i = 0; i <= segs; i++) {
+          const t = i / segs;
+          const center = curve.getPointAt(t);
+          const profile = Math.sin(t * Math.PI) * 0.85 + 0.18;
+          for (let j = 0; j <= radSegs; j++) {
+            const idx = i * (radSegs + 1) + j;
+            const vx = pos.getX(idx) - center.x;
+            const vy = pos.getY(idx) - center.y;
+            const vz = pos.getZ(idx) - center.z;
+            pos.setXYZ(idx, center.x + vx * profile * 1.25, center.y + vy * profile * 0.62, center.z + vz * profile);
+          }
+        }
+        geo.computeVertexNormals();
+        return geo;
+      }
+
+      function createForwardEyeGeometry(radius = 0.175) {
+        const geo = new THREE.SphereGeometry(radius, 32, 24);
+        const pos = geo.attributes.position;
+        const uv = geo.attributes.uv;
+
+        for (let i = 0; i < pos.count; i++) {
+          const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+          if (z >= -0.02) {
+            const u = 0.5 + (x / (radius * 1.92));
+            const v = 0.5 + (y / (radius * 1.92));
+            uv.setXY(i, THREE.MathUtils.clamp(u, 0.01, 0.99), THREE.MathUtils.clamp(v, 0.01, 0.99));
+          } else {
+            uv.setXY(i, 0.02, 0.02);
+          }
+        }
+        uv.needsUpdate = true;
+        return geo;
+      }
+
+      function createLowerMandibleGeometry() {
+        const segZ = 38, segTheta = 36;
+        const zMin = -0.82, zMax = 1.24;
+        const positions = [], uvs = [], indices = [];
+
+        for (let iz = 0; iz <= segZ; iz++) {
+          const tz = iz / segZ;
+          const z = zMin + tz * (zMax - zMin);
+          const endCap = Math.sin(Math.min(1, tz * 6.0) * Math.PI * 0.5) * Math.sin(Math.min(1, (1 - tz) * 7.5) * Math.PI * 0.5);
+          const halfW = viperHalfWidthAt(tz) * 0.93 * endCap;
+          const jawDepth = (0.31 * (1.0 - tz * 0.44)) * endCap;
+
+          for (let it = 0; it <= segTheta; it++) {
+            const tt = it / segTheta;
+            const theta = tt * Math.PI * 2;
+            const cosT = Math.cos(theta), sinT = Math.sin(theta);
+            const x = cosT * halfW;
+            let y = 0;
+
+            if (sinT <= 0) {
+              y = -Math.pow(-sinT, 0.72) * jawDepth;
+            } else {
+              y = -Math.sin(sinT * Math.PI) * 0.035;
+            }
+
+            positions.push(x, y, z);
+            uvs.push(tt * 1.4, tz * 1.4);
+          }
+        }
+
+        for (let iz = 0; iz < segZ; iz++) {
+          for (let it = 0; it < segTheta; it++) {
+            const a = iz * (segTheta + 1) + it;
+            const b = a + (segTheta + 1);
+            indices.push(a, a + 1, b);
+            indices.push(b, a + 1, b + 1);
+          }
+        }
+
+        const geo = new THREE.BufferGeometry();
+        geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+        geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+        geo.setIndex(indices);
+        geo.computeVertexNormals();
+        return geo;
+      }
+
+      function createInsetLowerGumGeometry() {
+        const segZ = 24, segX = 18;
+        const zMin = -0.62, zMax = 1.04;
+        const positions = [], uvs = [], indices = [];
+
+        for (let iz = 0; iz <= segZ; iz++) {
+          const tz = iz / segZ;
+          const z = zMin + tz * (zMax - zMin);
+          const mappedTz = (z + 0.82) / (1.24 + 0.82);
+          const endCap = Math.sin(Math.min(1, (1 - tz) * 5.0) * Math.PI * 0.5);
+          const halfW = viperHalfWidthAt(mappedTz) * 0.70 * endCap;
+
+          for (let ix = 0; ix <= segX; ix++) {
+            const tx = ix / segX;
+            const nx = (tx - 0.5) * 2.0;
+            const x = nx * halfW;
+            const edgeRidge = Math.pow(Math.abs(nx), 2.4) * 0.032;
+            const y = -0.022 + edgeRidge;
+            positions.push(x, y, z);
+            uvs.push(tx, tz);
+          }
+        }
+
+        for (let iz = 0; iz < segZ; iz++) {
+          for (let ix = 0; ix < segX; ix++) {
+            const a = iz * (segX + 1) + ix;
+            const b = a + (segX + 1);
+            indices.push(a, b, a + 1);
+            indices.push(b, b + 1, a + 1);
+          }
+        }
+
+        const geo = new THREE.BufferGeometry();
+        geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+        geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+        geo.setIndex(indices);
+        geo.computeVertexNormals();
+        return geo;
+      }
+
+      function createInsetUpperPalateGeometry() {
+        const segZ = 24, segX = 18;
+        const zMin = -0.64, zMax = 1.10;
+        const positions = [], uvs = [], indices = [];
+
+        for (let iz = 0; iz <= segZ; iz++) {
+          const tz = iz / segZ;
+          const z = zMin + tz * (zMax - zMin);
+          const mappedTz = (z + 0.88) / (1.32 + 0.88);
+          const endCap = Math.sin(Math.min(1, (1 - tz) * 5.5) * Math.PI * 0.5);
+          const halfW = viperHalfWidthAt(mappedTz) * 0.74 * endCap;
+
+          for (let ix = 0; ix <= segX; ix++) {
+            const tx = ix / segX;
+            const nx = (tx - 0.5) * 2.0;
+            const x = nx * halfW;
+            const vault = (1.0 - nx * nx) * 0.055;
+            const y = 0.015 + vault;
+            positions.push(x, y, z);
+            uvs.push(tx, tz);
+          }
+        }
+
+        for (let iz = 0; iz < segZ; iz++) {
+          for (let ix = 0; ix < segX; ix++) {
+            const a = iz * (segX + 1) + ix;
+            const b = a + (segX + 1);
+            indices.push(a, a + 1, b);
+            indices.push(b, a + 1, b + 1);
+          }
+        }
+
+        const geo = new THREE.BufferGeometry();
+        geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+        geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+        geo.setIndex(indices);
+        geo.computeVertexNormals();
+        return geo;
+      }
+
+      function createCurvedFangGeometry(length = 0.58, baseRadius = 0.048, curveBack = 0.14) {
+        const segs = 18, radSegs = 10;
+        const curve = new THREE.CatmullRomCurve3([
+          new THREE.Vector3(0, 0, 0),
+          new THREE.Vector3(0, -length * 0.42, curveBack * 0.25),
+          new THREE.Vector3(0, -length * 0.78, -curveBack * 0.32),
+          new THREE.Vector3(0, -length, -curveBack * 0.85)
+        ]);
+
+        const geo = new THREE.TubeGeometry(curve, segs, baseRadius, radSegs, false);
+        const pos = geo.attributes.position;
+
+        for (let i = 0; i <= segs; i++) {
+          const t = i / segs;
+          const center = curve.getPointAt(t);
+          const scale = Math.pow(1.0 - t, 1.35);
+          for (let j = 0; j <= radSegs; j++) {
+            const idx = i * (radSegs + 1) + j;
+            pos.setXYZ(
+              idx,
+              center.x + (pos.getX(idx) - center.x) * scale,
+              center.y + (pos.getY(idx) - center.y) * scale,
+              center.z + (pos.getZ(idx) - center.z) * scale
+            );
+          }
+        }
+        geo.computeVertexNormals();
+        return geo;
+      }
+
+      // 3. THREE.JS SCENE SETUP
+      const scene = new THREE.Scene();
+      // TRANSPARENT BACKGROUND (No opaque background color!)
+      scene.background = null;
+
+      let w = container.clientWidth || 800;
+      let h = container.clientHeight || 520;
+
+      const camera = new THREE.PerspectiveCamera(46, w / h, 0.05, 65);
+      const attackCamPos = new THREE.Vector3(0, 0.14, 4.35);
+      const attackLookAt = new THREE.Vector3(0, 0.08, -0.6);
+      camera.position.copy(attackCamPos);
+      camera.lookAt(attackLookAt);
+
+      const renderer = new THREE.WebGLRenderer({
+        canvas: canvas,
+        antialias: true,
+        alpha: true, // Transparent WebGL background
+        powerPreference: 'high-performance'
+      });
+      renderer.setClearColor(0x000000, 0); // Fully transparent clear
+      renderer.setSize(w, h);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.25;
+
+      // Lights
+      scene.add(new THREE.AmbientLight(0x382c20, 0.85));
+      const keyLight = new THREE.DirectionalLight(0xE8CD9A, 1.6);
+      keyLight.position.set(2.4, 4.4, 4.8);
+      scene.add(keyLight);
+
+      const frontFill = new THREE.DirectionalLight(0xC69C4E, 0.7);
+      frontFill.position.set(-1.6, 0.9, 5.0);
+      scene.add(frontFill);
+
+      const rimL = new THREE.SpotLight(0xF3DFB4, 4.5, 24, Math.PI * 0.42, 0.55, 1.1);
+      rimL.position.set(-4.6, 3.2, -0.4);
+      scene.add(rimL);
+
+      const rimR = new THREE.SpotLight(0xC69C4E, 4.0, 24, Math.PI * 0.42, 0.55, 1.1);
+      rimR.position.set(4.6, 2.4, -0.6);
+      scene.add(rimR);
+
+      const chinBounce = new THREE.PointLight(0x8C6A2E, 0.9, 10);
+      chinBounce.position.set(0, -2.2, 2.2);
+      scene.add(chinBounce);
+
+      // Serpent Model Assembly
+      const headTex = createHeadScaleTextures();
+      const mouthTex = createMouthTissueTextures();
+      const eyeTex = createViperEyeTexture();
+
+      const headScaleMat = new THREE.MeshStandardMaterial({
+        map: headTex.map,
+        bumpMap: headTex.bumpMap,
+        bumpScale: 0.048,
+        roughnessMap: headTex.roughnessMap,
+        roughness: 0.40,
+        metalness: 0.45
+      });
+
+      const browMat = new THREE.MeshStandardMaterial({
+        map: headTex.map,
+        bumpMap: headTex.bumpMap,
+        bumpScale: 0.062,
+        color: 0xD8BC88,
+        roughness: 0.34,
+        metalness: 0.52
+      });
+
+      const wetMouthMat = new THREE.MeshPhysicalMaterial({
+        map: mouthTex.map,
+        bumpMap: mouthTex.bumpMap,
+        bumpScale: 0.022,
+        color: 0x8B1E1E,
+        emissive: 0x260505,
+        roughness: 0.14,
+        metalness: 0.04,
+        clearcoat: 1.0,
+        clearcoatRoughness: 0.10
+      });
+
+      const membraneMat = new THREE.MeshPhysicalMaterial({
+        map: mouthTex.map,
+        color: 0x7A1818,
+        emissive: 0x1E0404,
+        roughness: 0.16,
+        clearcoat: 0.9,
+        side: THREE.DoubleSide
+      });
+
+      const fangMat = new THREE.MeshStandardMaterial({
+        color: 0xF5E7C8,
+        roughness: 0.16,
+        metalness: 0.10
+      });
+
+      const eyeIrisMat = new THREE.MeshStandardMaterial({
+        map: eyeTex,
+        emissive: new THREE.Color(0xE8B454),
+        emissiveMap: eyeTex,
+        emissiveIntensity: 0.75,
+        roughness: 0.18,
+        metalness: 0.08
+      });
+
+      const corneaMat = new THREE.MeshPhysicalMaterial({
+        color: 0xFFFFFF,
+        transparent: true,
+        opacity: 0.22,
+        roughness: 0.02,
+        metalness: 0.0,
+        clearcoat: 1.0,
+        clearcoatRoughness: 0.02
+      });
+
+      const serpentRoot = new THREE.Group();
+      serpentRoot.position.set(0, 0.08, -1.05);
+      scene.add(serpentRoot);
+
+      const headGroup = new THREE.Group();
+      serpentRoot.add(headGroup);
+
+      const HINGE_Z = -0.66;
+
+      // Upper Jaw
+      const upperJawGroup = new THREE.Group();
+      upperJawGroup.position.set(0, 0.0, HINGE_Z);
+      headGroup.add(upperJawGroup);
+
+      const upperLocal = new THREE.Group();
+      upperLocal.position.set(0, 0, -HINGE_Z);
+      upperJawGroup.add(upperLocal);
+
+      upperLocal.add(new THREE.Mesh(createUpperSkullGeometry(), headScaleMat));
+      upperLocal.add(new THREE.Mesh(createInsetUpperPalateGeometry(), wetMouthMat));
+      upperLocal.add(new THREE.Mesh(createBrowRidgeGeometry(1), browMat));
+      upperLocal.add(new THREE.Mesh(createBrowRidgeGeometry(-1), browMat));
+
+      const eyeGeo = createForwardEyeGeometry(0.172);
+      const corneaGeo = new THREE.SphereGeometry(0.181, 24, 18);
+      const makeEye = (side) => {
+        const g = new THREE.Group();
+        g.position.set(side * 0.44, 0.24, 0.46);
+        g.rotation.y = side * 0.19;
+        g.add(new THREE.Mesh(eyeGeo, eyeIrisMat));
+        g.add(new THREE.Mesh(corneaGeo, corneaMat));
+        return g;
+      };
+      upperLocal.add(makeEye(1));
+      upperLocal.add(makeEye(-1));
+
+      // Nostrils & Loreal Pits
+      const pitMat = new THREE.MeshBasicMaterial({ color: 0x060403 });
+      const pitGeo = new THREE.SphereGeometry(0.036, 10, 10);
+      [-1, 1].forEach((side) => {
+        const nostril = new THREE.Mesh(pitGeo, pitMat);
+        nostril.position.set(side * 0.18, 0.17, 1.15);
+        upperLocal.add(nostril);
+
+        const lorealPit = new THREE.Mesh(pitGeo, pitMat);
+        lorealPit.scale.set(1.25, 0.9, 1.0);
+        lorealPit.position.set(side * 0.29, 0.11, 0.90);
+        upperLocal.add(lorealPit);
+      });
+
+      // Hinged Fangs
+      const fangGeo = createCurvedFangGeometry(0.56, 0.045, 0.13);
+      const sheathGeo = new THREE.SphereGeometry(0.088, 14, 12);
+      sheathGeo.scale(1.0, 1.1, 1.35);
+
+      const buildFang = (side) => {
+        const pivot = new THREE.Group();
+        pivot.position.set(side * 0.25, 0.04, 0.90);
+        const sheath = new THREE.Mesh(sheathGeo, wetMouthMat);
+        sheath.position.set(0, 0.01, 0.01);
+        const fang = new THREE.Mesh(fangGeo, fangMat);
+        pivot.add(sheath);
+        pivot.add(fang);
+        return pivot;
+      };
+      const fangLeftPivot = buildFang(1);
+      const fangRightPivot = buildFang(-1);
+      upperLocal.add(fangLeftPivot);
+      upperLocal.add(fangRightPivot);
+
+      // Lower Jaw
+      const lowerJawGroup = new THREE.Group();
+      lowerJawGroup.position.set(0, 0.0, HINGE_Z);
+      headGroup.add(lowerJawGroup);
+
+      const lowerLocal = new THREE.Group();
+      lowerLocal.position.set(0, 0, -HINGE_Z);
+      lowerJawGroup.add(lowerLocal);
+
+      lowerLocal.add(new THREE.Mesh(createLowerMandibleGeometry(), headScaleMat));
+      lowerLocal.add(new THREE.Mesh(createInsetLowerGumGeometry(), wetMouthMat));
+
+      const lowerToothGeo = createCurvedFangGeometry(0.11, 0.015, 0.03);
+      [-1, 1].forEach((side) => {
+        for (let i = 0; i < 5; i++) {
+          const zPos = 0.86 - i * 0.21;
+          const tz = (zPos + 0.82) / (1.24 + 0.82);
+          const xPos = side * viperHalfWidthAt(tz) * 0.64;
+          const tooth = new THREE.Mesh(lowerToothGeo, fangMat);
+          tooth.scale.y = -1;
+          tooth.position.set(xPos, -0.005, zPos);
+          tooth.rotation.x = 0.20;
+          lowerLocal.add(tooth);
+        }
+      });
+
+      // Forked Tongue
+      const tongueGroup = new THREE.Group();
+      tongueGroup.position.set(0, 0.005, 0.28);
+      lowerLocal.add(tongueGroup);
+
+      const tongueMat = new THREE.MeshPhysicalMaterial({ color: 0xB02A2A, emissive: 0x300606, roughness: 0.16, clearcoat: 0.9 });
+      const stemGeo = new THREE.CylinderGeometry(0.016, 0.030, 0.95, 10);
+      stemGeo.rotateX(Math.PI / 2);
+      stemGeo.translate(0, 0, 0.475);
+      tongueGroup.add(new THREE.Mesh(stemGeo, tongueMat));
+
+      const forkGeo = new THREE.ConeGeometry(0.016, 0.30, 8);
+      forkGeo.rotateX(Math.PI / 2);
+      forkGeo.translate(0, 0, 0.15);
+
+      const forkL = new THREE.Mesh(forkGeo, tongueMat);
+      forkL.position.set(0, 0, 0.94);
+      forkL.rotation.y = 0.28;
+      tongueGroup.add(forkL);
+
+      const forkR = new THREE.Mesh(forkGeo, tongueMat);
+      forkR.position.set(0, 0, 0.94);
+      forkR.rotation.y = -0.28;
+      tongueGroup.add(forkR);
+
+      // Deep Throat & Light
+      const throatGeo = new THREE.CylinderGeometry(0.32, 0.22, 1.05, 18, 1, true);
+      throatGeo.rotateX(Math.PI / 2);
+      const throatMesh = new THREE.Mesh(throatGeo, new THREE.MeshPhysicalMaterial({
+        map: mouthTex.map,
+        color: 0x4E0B0B,
+        emissive: 0x160202,
+        roughness: 0.18,
+        clearcoat: 0.85,
+        side: THREE.BackSide
+      }));
+      throatMesh.position.set(0, 0.02, -0.96);
+      headGroup.add(throatMesh);
+
+      const throatLight = new THREE.PointLight(0xB02A2A, 0.0, 5.0);
+      throatLight.position.set(0, 0.02, -0.25);
+      headGroup.add(throatLight);
+
+      // Lateral Jaw Membranes
+      const createMembraneGeo = () => {
+        const g = new THREE.BufferGeometry();
+        const verts = new Float32Array(10 * 3);
+        const uvs = new Float32Array([
+          0, 1,  0.25, 1,  0.5, 1,  0.75, 1,  1, 1,
+          0, 0,  0.25, 0,  0.5, 0,  0.75, 0,  1, 0
+        ]);
+        const idx = [
+          0, 5, 1,  1, 5, 6,
+          1, 6, 2,  2, 6, 7,
+          2, 7, 3,  3, 7, 8,
+          3, 8, 4,  4, 8, 9
+        ];
+        g.setAttribute('position', new THREE.BufferAttribute(verts, 3));
+        g.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+        g.setIndex(idx);
+        return g;
+      };
+
+      const membraneLeftGeo = createMembraneGeo();
+      const membraneRightGeo = createMembraneGeo();
+      headGroup.add(new THREE.Mesh(membraneLeftGeo, membraneMat));
+      headGroup.add(new THREE.Mesh(membraneRightGeo, membraneMat));
+
+      function updateJawMembranes(upperRotX, lowerRotX, jawOpen) {
+        const zAnchors = [-0.52, -0.32, -0.10, 0.12, 0.30];
+        const updateSide = (geo, side) => {
+          const pos = geo.attributes.position;
+          const insetScale = THREE.MathUtils.lerp(0.62, 0.72, jawOpen);
+          for (let i = 0; i < zAnchors.length; i++) {
+            const zLocal = zAnchors[i];
+            const tz = (zLocal + 0.88) / (1.32 + 0.88);
+            const xBase = side * viperHalfWidthAt(tz) * insetScale;
+            const dz = zLocal - HINGE_Z;
+            const uy = 0.02 * Math.cos(upperRotX) - dz * Math.sin(upperRotX);
+            const uz = HINGE_Z + 0.02 * Math.sin(upperRotX) + dz * Math.cos(upperRotX);
+            const ly = -0.015 * Math.cos(lowerRotX) - dz * Math.sin(lowerRotX);
+            const lz = HINGE_Z - 0.015 * Math.sin(lowerRotX) + dz * Math.cos(lowerRotX);
+            pos.setXYZ(i, xBase, uy, uz);
+            pos.setXYZ(i + 5, xBase * 0.95, ly, lz);
+          }
+          pos.needsUpdate = true;
+          geo.computeVertexNormals();
+        };
+        updateSide(membraneLeftGeo, 1);
+        updateSide(membraneRightGeo, -1);
+      }
+
+      // Continuous S-Coiled Body Mesh
+      const BODY_RINGS = 64, BODY_RADIAL = 24;
+      const bodyTex = createBodyScaleTextures();
+      const bodyMat = new THREE.MeshStandardMaterial({
+        map: bodyTex.map,
+        bumpMap: bodyTex.bumpMap,
+        bumpScale: 0.052,
+        roughnessMap: bodyTex.roughnessMap,
+        roughness: 0.42,
+        metalness: 0.46
+      });
+
+      const vertCount = (BODY_RINGS + 1) * (BODY_RADIAL + 1);
+      const bPositions = new Float32Array(vertCount * 3);
+      const bUvs = new Float32Array(vertCount * 2);
+      const bIndices = [];
+
+      for (let i = 0; i <= BODY_RINGS; i++) {
+        const v = i / BODY_RINGS;
+        for (let j = 0; j <= BODY_RADIAL; j++) {
+          const u = j / BODY_RADIAL;
+          const idx = (i * (BODY_RADIAL + 1) + j) * 2;
+          bUvs[idx] = u;
+          bUvs[idx + 1] = v;
+        }
+      }
+
+      for (let i = 0; i < BODY_RINGS; i++) {
+        for (let j = 0; j < BODY_RADIAL; j++) {
+          const a = i * (BODY_RADIAL + 1) + j;
+          const b = a + (BODY_RADIAL + 1);
+          bIndices.push(a, b, a + 1);
+          bIndices.push(b, b + 1, a + 1);
+        }
+      }
+
+      const bodyGeo = new THREE.BufferGeometry();
+      bodyGeo.setAttribute('position', new THREE.BufferAttribute(bPositions, 3));
+      bodyGeo.setAttribute('uv', new THREE.BufferAttribute(bUvs, 2));
+      bodyGeo.setIndex(bIndices);
+
+      const bodyMesh = new THREE.Mesh(bodyGeo, bodyMat);
+      bodyMesh.frustumCulled = false;
+      scene.add(bodyMesh);
+
+      const _spinePts = Array.from({ length: BODY_RINGS + 1 }, () => new THREE.Vector3());
+      const _tangent = new THREE.Vector3(), _right = new THREE.Vector3(), _up = new THREE.Vector3();
+      const _worldUp = new THREE.Vector3(0, 1, 0), _neckSocket = new THREE.Vector3(), _neckDir = new THREE.Vector3();
+
+      function updateContinuousBody(time, coilTension) {
+        headGroup.updateMatrixWorld(true);
+        _neckSocket.set(0, 0.03, -0.62).applyMatrix4(headGroup.matrixWorld);
+        _neckDir.set(0, 0, -1).transformDirection(headGroup.matrixWorld).normalize();
+
+        const bodyLen = 15.0;
+        for (let i = 0; i <= BODY_RINGS; i++) {
+          const t = i / BODY_RINGS;
+          const blend = Math.pow(t, 1.25);
+          const z = _neckSocket.z + _neckDir.z * (t * bodyLen);
+          const swayAmp = (0.15 + Math.pow(t, 0.85) * 2.15) * coilTension;
+          const waveX = Math.sin(t * 7.2 - time * 1.9) * swayAmp;
+          const waveY = Math.cos(t * 4.8 - time * 1.4) * 0.38 * coilTension;
+
+          const x = _neckSocket.x + _neckDir.x * (t * 1.6) * (1 - blend) + waveX * Math.min(1, t * 4.5);
+          const y = _neckSocket.y - Math.pow(t, 1.3) * 1.85 + waveY * Math.min(1, t * 4.0);
+          _spinePts[i].set(x, y, z);
+        }
+
+        const pos = bodyGeo.attributes.position;
+        for (let i = 0; i <= BODY_RINGS; i++) {
+          const t = i / BODY_RINGS;
+          if (i < BODY_RINGS) {
+            _tangent.subVectors(_spinePts[i + 1], _spinePts[i]).normalize();
+          } else {
+            _tangent.subVectors(_spinePts[i], _spinePts[i - 1]).normalize();
+          }
+
+          _right.crossVectors(_worldUp, _tangent).normalize();
+          if (_right.lengthSq() < 0.001) _right.set(1, 0, 0);
+          _up.crossVectors(_tangent, _right).normalize();
+
+          let radius = 0.44;
+          if (t < 0.08) {
+            radius = THREE.MathUtils.lerp(0.46, 0.41, t / 0.08);
+          } else {
+            const u = (t - 0.08) / 0.92;
+            radius = 0.41 + Math.sin(u * Math.PI * 0.88) * 0.30 - u * 0.14;
+          }
+
+          radius *= (1.0 + Math.sin(time * 2.4 - t * 3.0) * 0.032);
+
+          for (let j = 0; j <= BODY_RADIAL; j++) {
+            const u = j / BODY_RADIAL;
+            const angle = u * Math.PI * 2 - Math.PI / 2;
+            const cosA = Math.cos(angle), sinA = Math.sin(angle);
+            let rx = cosA * radius * 1.06;
+            let ry = sinA * radius * 0.86;
+            if (sinA < 0) {
+              ry *= 0.78;
+            } else {
+              ry += Math.pow(sinA, 6.0) * radius * 0.12;
+            }
+            const idx = i * (BODY_RADIAL + 1) + j;
+            pos.setXYZ(
+              idx,
+              _spinePts[i].x + _right.x * rx + _up.x * ry,
+              _spinePts[i].y + _right.y * rx + _up.y * ry,
+              _spinePts[i].z + _right.z * rx + _up.z * ry
+            );
+          }
+        }
+        pos.needsUpdate = true;
+        bodyGeo.computeVertexNormals();
+      }
+
+      // Golden Dust Motes in Transparent Space
+      const dustCount = 140;
+      const dustPos = new Float32Array(dustCount * 3);
+      for (let i = 0; i < dustCount; i++) {
+        dustPos[i * 3] = (Math.random() - 0.5) * 12;
+        dustPos[i * 3 + 1] = (Math.random() - 0.5) * 8;
+        dustPos[i * 3 + 2] = (Math.random() - 0.5) * 12 - 1.5;
+      }
+      const dustGeo = new THREE.BufferGeometry();
+      dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPos, 3));
+      const dustParticles = new THREE.Points(dustGeo, new THREE.PointsMaterial({
+        size: 0.07,
+        map: createDustTexture(),
+        transparent: true,
+        opacity: 0.48,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending
+      }));
+      scene.add(dustParticles);
+
+      // 4. ANIMATION & STATE MACHINE
+      const STATE = { STALK: 'STALK', WINDUP: 'WINDUP', LUNGE: 'LUNGE', BITE: 'BITE', HOLD_DARK: 'HOLD_DARK', RESET: 'RESET' };
+      let currentState = STATE.STALK;
+      let stateTime = 0, totalTime = 0;
+      let autoLoop = true, slowMo = false, inspectMode = false, inspectJawOpen = 0.0;
+      let cameraShake = 0;
+      let isVisible = true;
+
+      const mouse = { x: 0, y: 0, targetX: 0, targetY: 0 };
+      const orbit = {
+        isDragging: false,
+        lastX: 0,
+        lastY: 0,
+        theta: 0.35,
+        phi: 1.48,
+        radius: 3.1,
+        target: new THREE.Vector3(0, 0.06, -0.85)
+      };
+
+      function triggerStrike() {
+        if (inspectMode) setInspectMode(false);
+        if (currentState === STATE.STALK || currentState === STATE.RESET) {
+          currentState = STATE.WINDUP;
+          stateTime = 0;
+          biteOverlay.style.opacity = '0';
+          blackoutOverlay.style.opacity = '0';
+        }
+      }
+
+      function setInspectMode(enabled) {
+        inspectMode = enabled;
+        document.getElementById('serpentBtnInspect').classList.toggle('active', inspectMode);
+        container.classList.toggle('inspect-active', inspectMode);
+        inspectPanel.classList.toggle('visible', inspectMode);
+
+        if (inspectMode) {
+          currentState = STATE.STALK;
+          stateTime = 0;
+          biteOverlay.style.opacity = '0';
+          blackoutOverlay.style.opacity = '0';
+          phaseBadge.textContent = 'INSPECTING';
+          if (hintText) hintText.textContent = 'Drag to orbit · Scroll to zoom · Slider tests jaw & fangs';
+        } else {
+          inspectJawOpen = 0;
+          jawSlider.value = '0';
+          jawVal.textContent = '0°';
+          if (hintText) hintText.textContent = 'Move cursor over viper to lure · Click canvas or tap Strike to attack';
+        }
+      }
+
+      // 5. EVENT BINDINGS (SCOPED TO CONTAINER)
+      const updateMouseTarget = (clientX, clientY) => {
+        const rect = container.getBoundingClientRect();
+        const nx = ((clientX - rect.left) / rect.width) * 2 - 1;
+        const ny = -(((clientY - rect.top) / rect.height) * 2 - 1);
+        mouse.targetX = THREE.MathUtils.clamp(nx, -1.2, 1.2);
+        mouse.targetY = THREE.MathUtils.clamp(ny, -1.2, 1.2);
+      };
+
+      container.addEventListener('mousemove', (e) => {
+        updateMouseTarget(e.clientX, e.clientY);
+        if (inspectMode && orbit.isDragging) {
+          const dx = e.clientX - orbit.lastX;
+          const dy = e.clientY - orbit.lastY;
+          orbit.lastX = e.clientX;
+          orbit.lastY = e.clientY;
+          orbit.theta -= dx * 0.008;
+          orbit.phi = THREE.MathUtils.clamp(orbit.phi - dy * 0.008, 0.28, Math.PI - 0.25);
+        }
+      });
+
+      container.addEventListener('mouseleave', () => {
+        if (!inspectMode) {
+          mouse.targetX = 0;
+          mouse.targetY = 0;
+        }
+      });
+
+      container.addEventListener('mousedown', (e) => {
+        if (inspectMode) {
+          orbit.isDragging = true;
+          orbit.lastX = e.clientX;
+          orbit.lastY = e.clientY;
+        }
+      });
+
+      window.addEventListener('mouseup', () => {
+        orbit.isDragging = false;
+      });
+
+      // Touch handling
+      container.addEventListener('touchstart', (e) => {
+        if (e.touches.length === 1) {
+          if (inspectMode) {
+            orbit.isDragging = true;
+            orbit.lastX = e.touches[0].clientX;
+            orbit.lastY = e.touches[0].clientY;
+          } else {
+            updateMouseTarget(e.touches[0].clientX, e.touches[0].clientY);
+          }
+        }
+      }, { passive: true });
+
+      container.addEventListener('touchmove', (e) => {
+        if (e.touches.length === 1) {
+          updateMouseTarget(e.touches[0].clientX, e.touches[0].clientY);
+          if (inspectMode && orbit.isDragging) {
+            const dx = e.touches[0].clientX - orbit.lastX;
+            const dy = e.touches[0].clientY - orbit.lastY;
+            orbit.lastX = e.touches[0].clientX;
+            orbit.lastY = e.touches[0].clientY;
+            orbit.theta -= dx * 0.008;
+            orbit.phi = THREE.MathUtils.clamp(orbit.phi - dy * 0.008, 0.28, Math.PI - 0.25);
+          }
+        }
+      }, { passive: true });
+
+      container.addEventListener('touchend', () => {
+        orbit.isDragging = false;
+      });
+
+      // Wheel zoom (Inspect mode only)
+      container.addEventListener('wheel', (e) => {
+        if (inspectMode) {
+          e.preventDefault();
+          orbit.radius = THREE.MathUtils.clamp(orbit.radius + e.deltaY * 0.0025, 1.7, 6.2);
+        }
+      }, { passive: false });
+
+      // Click to strike
+      container.addEventListener('click', (e) => {
+        // Do not trigger strike if clicking controls or inspect panel
+        if (e.target.closest('.serpent-controls-bar') || e.target.closest('.serpent-inspect-panel')) return;
+        if (!inspectMode) triggerStrike();
+      });
+
+      // Buttons
+      document.getElementById('serpentBtnStrike').addEventListener('click', (e) => {
+        e.stopPropagation();
+        triggerStrike();
+      });
+
+      const btnLoop = document.getElementById('serpentBtnLoop');
+      btnLoop.addEventListener('click', (e) => {
+        e.stopPropagation();
+        autoLoop = !autoLoop;
+        btnLoop.classList.toggle('active', autoLoop);
+      });
+
+      const btnSlowMo = document.getElementById('serpentBtnSlowMo');
+      btnSlowMo.addEventListener('click', (e) => {
+        e.stopPropagation();
+        slowMo = !slowMo;
+        btnSlowMo.classList.toggle('active', slowMo);
+      });
+
+      document.getElementById('serpentBtnInspect').addEventListener('click', (e) => {
+        e.stopPropagation();
+        setInspectMode(!inspectMode);
+      });
+
+      jawSlider.addEventListener('input', (e) => {
+        const pct = Number(e.target.value) / 100;
+        inspectJawOpen = pct;
+        jawVal.textContent = `${Math.round(pct * 78)}°`;
+      });
+
+      // Spacebar strike only when section is near viewport
+      window.addEventListener('keydown', (e) => {
+        if (e.code === 'Space' && !e.target.matches('input, textarea, button')) {
+          const r = container.getBoundingClientRect();
+          if (r.top < window.innerHeight && r.bottom > 0) {
+            e.preventDefault();
+            triggerStrike();
+          }
+        }
+      });
+
+      // Window resize
+      window.addEventListener('resize', () => {
+        w = container.clientWidth;
+        h = container.clientHeight;
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+        renderer.setSize(w, h);
+      });
+
+      // Intersection Observer for battery & GPU conservation
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          isVisible = entry.isIntersecting;
+        });
+      }, { threshold: 0.05 });
+      observer.observe(container);
+
+      // 6. ANIMATION LOOP
+      let lastTime = performance.now();
+
+      function animateSerpent(now) {
+        requestAnimationFrame(animateSerpent);
+        if (!isVisible) return; // Pause rendering when scrolled out of view
+
+        const rawDt = Math.min((now - lastTime) / 1000, 0.05);
+        lastTime = now;
+        const dt = rawDt * (slowMo ? 0.30 : 1.0);
+
+        totalTime += dt;
+        if (!inspectMode) stateTime += dt;
+
+        mouse.x += (mouse.targetX - mouse.x) * Math.min(1, dt * 5.0);
+        mouse.y += (mouse.targetY - mouse.y) * Math.min(1, dt * 5.0);
+
+        let targetX = Math.sin(totalTime * 1.15) * 0.22 + mouse.x * 0.42;
+        let targetY = 0.08 + Math.sin(totalTime * 2.3) * 0.07 + mouse.y * 0.28;
+        let targetZ = -1.05;
+        let jawOpen = 0.0;
+        let fangExtend = 0.0;
+        let headPitch = -mouse.y * 0.16;
+        let headYaw = mouse.x * 0.24;
+        let headRoll = Math.sin(totalTime * 1.15) * 0.055;
+        let coilTension = 1.0;
+
+        if (inspectMode) {
+          targetX = Math.sin(totalTime * 0.9) * 0.04;
+          targetY = 0.06 + Math.cos(totalTime * 1.3) * 0.03;
+          targetZ = -0.85;
+          jawOpen = inspectJawOpen;
+          fangExtend = inspectJawOpen;
+          headPitch = 0.04;
+          headYaw = 0.0;
+          headRoll = 0.0;
+          coilTension = 0.85;
+          tongueGroup.visible = false;
+        } else if (currentState === STATE.STALK) {
+          phaseBadge.textContent = 'STALKING';
+          jawOpen = 0.0;
+          fangExtend = 0.0;
+
+          const flickCycle = totalTime % 3.1;
+          if (flickCycle > 0.6 && flickCycle < 1.08) {
+            const f = Math.sin(((flickCycle - 0.6) / 0.48) * Math.PI);
+            tongueGroup.position.z = 0.28 + f * 0.88;
+            tongueGroup.rotation.x = Math.sin(totalTime * 42) * 0.20 * f;
+            tongueGroup.visible = true;
+          } else {
+            tongueGroup.position.z = 0.18;
+            tongueGroup.visible = false;
+          }
+
+          if (autoLoop && stateTime > 3.2) {
+            currentState = STATE.WINDUP;
+            stateTime = 0;
+          }
+        } else if (currentState === STATE.WINDUP) {
+          phaseBadge.textContent = 'WIND-UP';
+          const p = Math.min(stateTime / 0.62, 1);
+          const ease = 1 - Math.pow(1 - p, 3);
+          targetZ = THREE.MathUtils.lerp(-1.05, -2.25, ease);
+          targetX = THREE.MathUtils.lerp(targetX, 0, ease * 0.8);
+          targetY = THREE.MathUtils.lerp(targetY, 0.24, ease);
+          jawOpen = ease * 0.28;
+          fangExtend = ease * 0.48;
+          headPitch = THREE.MathUtils.lerp(headPitch, 0.12, ease);
+          headYaw = THREE.MathUtils.lerp(headYaw, 0, ease);
+          coilTension = 1.0 + ease * 0.55;
+          tongueGroup.visible = false;
+          if (p >= 1) {
+            currentState = STATE.LUNGE;
+            stateTime = 0;
+          }
+        } else if (currentState === STATE.LUNGE) {
+          phaseBadge.textContent = 'STRIKING';
+          const p = Math.min(stateTime / 0.36, 1);
+          const surge = Math.pow(p, 1.9);
+          targetZ = THREE.MathUtils.lerp(-2.25, 3.22, surge);
+          targetX = 0;
+          targetY = THREE.MathUtils.lerp(0.24, 0.12, surge);
+          jawOpen = THREE.MathUtils.lerp(0.28, 1.0, Math.min(p * 1.45, 1));
+          fangExtend = THREE.MathUtils.lerp(0.48, 1.0, Math.min(p * 1.5, 1));
+          headPitch = THREE.MathUtils.lerp(0.12, 0.02, surge);
+          headYaw = 0; headRoll = 0;
+          coilTension = THREE.MathUtils.lerp(1.55, 0.45, surge);
+          if (p >= 1) {
+            currentState = STATE.BITE;
+            stateTime = 0;
+            cameraShake = 0.28;
+            biteOverlay.style.opacity = '0.95';
+          }
+        } else if (currentState === STATE.BITE) {
+          phaseBadge.textContent = 'BITE';
+          const p = Math.min(stateTime / 0.14, 1);
+          const snap = Math.pow(p, 0.52);
+          targetZ = 3.35; targetX = 0; targetY = 0.12;
+          jawOpen = THREE.MathUtils.lerp(1.0, 0.0, snap);
+          fangExtend = THREE.MathUtils.lerp(1.0, 0.25, snap);
+          headPitch = 0; headYaw = 0; headRoll = 0;
+          coilTension = 0.45;
+          blackoutOverlay.style.opacity = String(Math.pow(p, 1.35));
+          if (p >= 1) {
+            currentState = STATE.HOLD_DARK;
+            stateTime = 0;
+          }
+        } else if (currentState === STATE.HOLD_DARK) {
+          phaseBadge.textContent = 'DEVOURING';
+          targetZ = 3.35; targetX = 0; targetY = 0.12;
+          jawOpen = 0.0; fangExtend = 0.0;
+          coilTension = 0.5;
+          blackoutOverlay.style.opacity = '1';
+          biteOverlay.style.opacity = '0.38';
+          if (stateTime > 0.62) {
+            currentState = STATE.RESET;
+            stateTime = 0;
+          }
+        } else if (currentState === STATE.RESET) {
+          phaseBadge.textContent = 'RECOILING';
+          const p = Math.min(stateTime / 1.18, 1);
+          const ease = 1 - Math.pow(1 - p, 2.5);
+          targetZ = THREE.MathUtils.lerp(3.35, -1.05, ease);
+          targetX = THREE.MathUtils.lerp(0, mouse.x * 0.42, ease);
+          targetY = THREE.MathUtils.lerp(0.12, 0.08 + mouse.y * 0.28, ease);
+          jawOpen = 0.0; fangExtend = 0.0;
+          coilTension = THREE.MathUtils.lerp(0.5, 1.0, ease);
+          blackoutOverlay.style.opacity = String(Math.max(0, 1.0 - p * 2.1));
+          biteOverlay.style.opacity = String(Math.max(0, 0.38 - p * 1.4));
+          if (p >= 1) {
+            currentState = STATE.STALK;
+            stateTime = 0;
+            blackoutOverlay.style.opacity = '0';
+            biteOverlay.style.opacity = '0';
+          }
+        }
+
+        serpentRoot.position.set(targetX, targetY, targetZ);
+        headGroup.rotation.set(headPitch, headYaw, headRoll);
+
+        const upperRotX = -jawOpen * 0.54;
+        const lowerRotX = jawOpen * 0.82;
+        upperJawGroup.rotation.x = upperRotX;
+        lowerJawGroup.rotation.x = lowerRotX;
+
+        const fangAngle = THREE.MathUtils.lerp(-1.35, 0.16, fangExtend);
+        fangLeftPivot.rotation.x = fangAngle;
+        fangRightPivot.rotation.x = fangAngle;
+        const fangsVisible = jawOpen > 0.03;
+        fangLeftPivot.visible = fangsVisible;
+        fangRightPivot.visible = fangsVisible;
+
+        throatLight.intensity = jawOpen * 3.8;
+
+        updateJawMembranes(upperRotX, lowerRotX, jawOpen);
+        updateContinuousBody(totalTime, coilTension);
+
+        if (dustParticles) {
+          dustParticles.rotation.y = totalTime * 0.024;
+          dustParticles.position.y = Math.sin(totalTime * 0.45) * 0.16;
+        }
+
+        if (inspectMode) {
+          const desiredCam = new THREE.Vector3(
+            orbit.target.x + orbit.radius * Math.sin(orbit.phi) * Math.sin(orbit.theta),
+            orbit.target.y + orbit.radius * Math.cos(orbit.phi),
+            orbit.target.z + orbit.radius * Math.sin(orbit.phi) * Math.cos(orbit.theta)
+          );
+          camera.position.lerp(desiredCam, Math.min(1, rawDt * 10));
+          camera.lookAt(orbit.target);
+        } else {
+          let shakeX = 0, shakeY = 0;
+          if (cameraShake > 0.001) {
+            shakeX = (Math.random() - 0.5) * cameraShake;
+            shakeY = (Math.random() - 0.5) * cameraShake;
+            cameraShake *= Math.pow(0.035, rawDt);
+          }
+          camera.position.lerp(attackCamPos, Math.min(1, rawDt * 8));
+          camera.position.x += shakeX;
+          camera.position.y += shakeY;
+          camera.lookAt(attackLookAt);
+        }
+
+        renderer.render(scene, camera);
+      }
+
+      requestAnimationFrame(animateSerpent);
+    }
+
+    // Initialize serpent after DOM loads
+    window.addEventListener('DOMContentLoaded', () => {
+      initSerpentInteractive();
+    });
   </script>
 </body>
 </html>
