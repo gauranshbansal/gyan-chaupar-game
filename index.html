@@ -3,29 +3,39 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#0a0806">
-  <meta name="description" content="Gyan Chaupar (Moksha Patam) — The original 72-square board game of karma and liberation. Created by Gauransh Bansal.">
-  <title>GYAN CHAUPAR — Moksha Patam | Android APK</title>
+  <meta name="theme-color" content="#090705">
+  <meta name="description" content="Gyan Chaupar (Moksha Patam) — The original 72-square board game of karma and liberation. Reconstructed and packaged as an offline Android APK by Gauransh Bansal.">
+  <title>GYAN CHAUPAR — Moksha Patam | Official Android APK</title>
 
-  <!-- Google Fonts: Dramatic Display & Monospace -->
+  <!-- Google Fonts: Classical Inscribed Display & Technical Monospace -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800;900&family=Space+Mono:wght@400;700&family=Yatra+One&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Yatra+One&family=Playfair+Display:ital,wght@0,500;1,400&display=swap" rel="stylesheet">
 
   <style>
+    /* ==========================================================================
+       DESIGN SYSTEM TOKENS
+       ========================================================================== */
     :root {
       --bg: #090705;
       --card: #120e0a;
+      --card-elevated: #1a140e;
       --gold: #d4af37;
       --gold-bright: #fae8b8;
+      --gold-dim: rgba(212, 175, 55, 0.35);
       --cream: #f4ecdf;
-      --dim: #7d6f5d;
-      --line: rgba(212, 175, 55, 0.22);
+      --dim: #8a7c6a;
+      --line: rgba(212, 175, 55, 0.2);
+      --line-bright: rgba(212, 175, 55, 0.55);
       --red: #c53d24;
+      --emerald: #4ade80;
       
       --font-display: 'Cinzel', Georgia, serif;
       --font-mono: 'Space Mono', monospace;
       --font-sanskrit: 'Yatra One', serif;
+      --font-serif: 'Playfair Display', Georgia, serif;
+
+      --max-w: 1200px;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -40,29 +50,67 @@
 
     body {
       min-height: 100vh;
-      display: flex;
-      flex-direction: column;
+      overflow-x: hidden;
+      position: relative;
       background: 
-        radial-gradient(circle at 50% 0%, #22140a 0%, #090705 60%),
-        linear-gradient(to right, rgba(212, 175, 55, 0.04) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(212, 175, 55, 0.04) 1px, transparent 1px);
-      background-size: 100% 100%, 40px 40px, 40px 40px;
+        radial-gradient(circle at 50% 0%, #201309 0%, #090705 65%),
+        linear-gradient(to right, rgba(212, 175, 55, 0.035) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(212, 175, 55, 0.035) 1px, transparent 1px);
+      background-size: 100% 100%, 48px 48px, 48px 48px;
+    }
+
+    /* Living Background: Subtle Canvas Particles & Grain Overlay */
+    .ambient-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.75;
+    }
+
+    .noise-overlay {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0.038;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    }
+
+    /* Scroll Progress Indicator Bar */
+    .scroll-progress-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 3px;
+      width: 0%;
+      background: linear-gradient(90deg, #c53d24 0%, #d4af37 50%, #fae8b8 100%);
+      box-shadow: 0 0 10px rgba(212, 175, 55, 0.8);
+      z-index: 10000;
+      pointer-events: none;
+      transition: width 0.08s ease-out;
     }
 
     .wrap {
-      width: min(1180px, calc(100% - 40px));
+      width: min(var(--max-w), calc(100% - 44px));
       margin-inline: auto;
+      position: relative;
+      z-index: 2;
     }
 
-    /* Minimalist Masthead */
-    header {
+    /* ==========================================================================
+       MASTHEAD & FLOATING NAVIGATION
+       ========================================================================== */
+    header.site-header {
       padding: 24px 0;
       border-bottom: 1px solid var(--line);
       display: flex;
       justify-content: space-between;
       align-items: center;
       font-size: 11px;
-      letter-spacing: 0.15em;
+      letter-spacing: 0.16em;
       text-transform: uppercase;
       color: var(--dim);
     }
@@ -72,39 +120,77 @@
       font-size: 13px;
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
+      text-decoration: none;
     }
 
     .brand-mark span.devanagari {
       font-family: var(--font-sanskrit);
-      font-size: 18px;
+      font-size: 20px;
       color: var(--gold);
+      line-height: 1;
     }
 
-    .creator-header-tag {
+    .creator-tag {
       color: var(--dim);
       display: flex;
       align-items: center;
       gap: 6px;
     }
 
-    .creator-header-tag a {
+    .creator-tag a {
       color: var(--gold);
       text-decoration: none;
       transition: color 0.2s;
     }
 
-    .creator-header-tag a:hover {
+    .creator-tag a:hover {
       color: var(--gold-bright);
       text-decoration: underline;
     }
 
-    /* Giant Poster Hero */
+    /* Minimalist Floating Pill Navigation */
+    .floating-nav {
+      position: fixed;
+      top: 24px;
+      right: 32px;
+      z-index: 999;
+      display: flex;
+      gap: 6px;
+      padding: 5px;
+      background: rgba(14, 10, 7, 0.88);
+      border: 1px solid var(--line-bright);
+      border-radius: 30px;
+      backdrop-filter: blur(14px);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    .floating-nav a {
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--dim);
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+
+    .floating-nav a:hover,
+    .floating-nav a.active {
+      color: var(--gold-bright);
+      background: rgba(212, 175, 55, 0.18);
+    }
+
+    /* ==========================================================================
+       HERO POSTER & ENGRAVED TYPOGRAPHY
+       ========================================================================== */
     .hero {
-      padding: 60px 0 50px;
+      padding: 64px 0 60px;
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 48px;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 52px;
       align-items: center;
     }
 
@@ -113,7 +199,7 @@
       letter-spacing: 0.25em;
       color: var(--red);
       text-transform: uppercase;
-      margin-bottom: 16px;
+      margin-bottom: 18px;
       display: flex;
       align-items: center;
       gap: 8px;
@@ -122,29 +208,43 @@
     .tagline::before {
       content: "●";
       font-size: 8px;
+      color: var(--red);
     }
 
-    h1 {
+    /* Engraved Metallic Typography */
+    h1.engraved-title {
       font-family: var(--font-display);
-      font-size: clamp(48px, 6vw, 76px);
+      font-size: clamp(48px, 6.2vw, 84px);
       font-weight: 900;
-      line-height: 0.95;
-      letter-spacing: -0.02em;
+      line-height: 0.94;
+      letter-spacing: -0.025em;
       color: var(--gold-bright);
       text-transform: uppercase;
-      margin-bottom: 20px;
+      margin-bottom: 22px;
+      cursor: default;
+      transition: text-shadow 0.4s ease, color 0.4s ease;
+    }
+
+    h1.engraved-title:hover {
+      color: #fff2d1;
+      text-shadow: 
+        0 1px 1px rgba(255, 255, 255, 0.4),
+        0 -1px 2px rgba(0, 0, 0, 0.95),
+        0 0 24px rgba(212, 175, 55, 0.45);
     }
 
     .subhead {
-      font-size: 16px;
+      font-family: var(--font-serif);
+      font-size: 18px;
       color: var(--cream);
-      line-height: 1.5;
+      line-height: 1.6;
       margin-bottom: 32px;
-      max-width: 440px;
-      font-family: Georgia, serif;
+      max-width: 480px;
     }
 
-    /* Fast Download Block */
+    /* ==========================================================================
+       DOWNLOAD MODULE & FEEDBACK
+       ========================================================================== */
     .download-block {
       display: flex;
       flex-direction: column;
@@ -153,6 +253,7 @@
     }
 
     .btn-main {
+      position: relative;
       background: linear-gradient(135deg, #fae8b8 0%, #d4af37 50%, #9e7322 100%);
       color: #0c0906;
       text-decoration: none;
@@ -160,21 +261,62 @@
       font-size: 16px;
       font-weight: 900;
       letter-spacing: 0.12em;
-      padding: 20px 32px;
+      padding: 20px 34px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 12px;
       border: 1px solid var(--gold-bright);
-      box-shadow: 0 10px 30px rgba(212, 175, 55, 0.35);
-      transition: all 0.2s ease;
+      box-shadow: 0 10px 35px rgba(212, 175, 55, 0.35);
       cursor: pointer;
+      overflow: hidden;
+      transition: transform 0.18s ease-out, box-shadow 0.2s ease;
+      will-change: transform;
     }
 
     .btn-main:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 16px 40px rgba(212, 175, 55, 0.55);
-      filter: brightness(1.1);
+      box-shadow: 0 16px 45px rgba(212, 175, 55, 0.55);
+      filter: brightness(1.08);
+    }
+
+    .btn-main.download-active {
+      background: linear-gradient(135deg, #86efac 0%, #22c55e 50%, #15803d 100%);
+      color: #052e16;
+      box-shadow: 0 10px 40px rgba(34, 197, 94, 0.5);
+      border-color: #86efac;
+    }
+
+    /* Device-aware detection badge */
+    .device-detection {
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 22px;
+    }
+
+    .device-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .device-pill.android {
+      background: rgba(74, 222, 128, 0.12);
+      border: 1px solid rgba(74, 222, 128, 0.35);
+      color: #86efac;
+    }
+
+    .device-pill.desktop {
+      background: rgba(212, 175, 55, 0.08);
+      border: 1px solid var(--line);
+      color: var(--dim);
     }
 
     .specs-pill-bar {
@@ -190,148 +332,475 @@
       color: var(--gold);
     }
 
-    .hero-art {
+    /* Subtle Parallax on Hero Artwork */
+    .hero-art-wrapper {
       position: relative;
       border: 1px solid var(--line);
       padding: 10px;
       background: var(--card);
-      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.8);
+      box-shadow: 0 30px 90px rgba(0, 0, 0, 0.85);
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      perspective: 1000px;
+      will-change: transform;
     }
 
-    .hero-art img {
+    .hero-art-wrapper img {
       width: 100%;
       height: auto;
       display: block;
-      border: 1px solid rgba(212, 175, 55, 0.15);
+      border: 1px solid rgba(212, 175, 55, 0.2);
     }
 
-    /* Visual Showcase / Poster Gallery */
-    .gallery-title {
+    /* ==========================================================================
+       EXPANDABLE INTEGRITY VERIFICATION (SHA-256)
+       ========================================================================== */
+    .verify-details {
+      margin-top: 14px;
+      border: 1px solid var(--line);
+      background: rgba(18, 14, 10, 0.6);
+      border-radius: 6px;
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+
+    .verify-details[open] {
+      border-color: var(--gold);
+    }
+
+    .verify-details summary {
+      padding: 12px 16px;
+      cursor: pointer;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--gold);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      user-select: none;
+    }
+
+    .verify-details summary::-webkit-details-marker { display: none; }
+
+    .verify-details summary::after {
+      content: "+";
+      font-size: 14px;
+      color: var(--dim);
+    }
+
+    .verify-details[open] summary::after {
+      content: "−";
+    }
+
+    .verify-content {
+      padding: 14px 16px 16px;
+      border-top: 1px dashed var(--line);
+      font-size: 11px;
+      color: var(--dim);
+    }
+
+    .hash-display {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background: #080604;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      margin: 8px 0;
+      flex-wrap: wrap;
+    }
+
+    .hash-display code {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--gold-bright);
+      word-break: break-all;
+    }
+
+    .copy-pill {
+      background: transparent;
+      border: 1px solid var(--gold);
+      color: var(--gold);
+      padding: 5px 12px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+
+    .copy-pill:hover {
+      background: var(--gold);
+      color: #000;
+    }
+
+    .copy-pill.copied {
+      background: #22c55e;
+      border-color: #22c55e;
+      color: #052e16;
+    }
+
+    /* ==========================================================================
+       SECTION HEADINGS & REVEAL-ON-SCROLL
+       ========================================================================== */
+    .fade-in-section {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1), transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+      will-change: opacity, transform;
+    }
+
+    .fade-in-section.is-revealed {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .section-title {
       font-family: var(--font-display);
-      font-size: 24px;
+      font-size: clamp(24px, 3.2vw, 36px);
       color: var(--gold-bright);
       letter-spacing: 0.1em;
       text-transform: uppercase;
-      margin-bottom: 20px;
+      margin: 70px 0 24px;
       display: flex;
       justify-content: space-between;
       align-items: baseline;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 14px;
     }
 
-    .gallery-title span {
+    .section-title span.sub {
       font-family: var(--font-mono);
       font-size: 11px;
       color: var(--dim);
+      letter-spacing: 0.14em;
     }
 
-    .board-strip {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 20px;
-      margin-bottom: 24px;
-    }
-
-    .board-card {
-      border: 1px solid var(--line);
-      background: var(--card);
-      padding: 8px;
-      cursor: pointer;
-      transition: transform 0.25s, border-color 0.25s;
-    }
-
-    .board-card:hover {
-      transform: translateY(-4px);
-      border-color: var(--gold);
-    }
-
-    .board-card img {
-      width: 100%;
-      height: 220px;
-      object-fit: cover;
-      display: block;
-      background: #000;
-    }
-
-    .board-card figcaption {
-      padding: 10px 4px 2px;
-      font-size: 11px;
-      color: var(--dim);
-      display: flex;
-      justify-content: space-between;
-    }
-
-    .tapestry-frame {
+    /* ==========================================================================
+       INTERACTIVE GALLERY FILMSTRIP
+       ========================================================================== */
+    .filmstrip-container {
+      position: relative;
+      margin-bottom: 30px;
       border: 1px solid var(--line);
       background: var(--card);
       padding: 12px;
-      cursor: pointer;
-      margin-bottom: 60px;
-      transition: border-color 0.25s;
     }
 
-    .tapestry-frame:hover {
-      border-color: var(--gold);
-    }
-
-    .tapestry-frame img {
+    .filmstrip-viewport {
       width: 100%;
+      height: 480px;
+      overflow: hidden;
+      position: relative;
+      background: #050403;
+      border: 1px solid rgba(212, 175, 55, 0.15);
+      cursor: zoom-in;
+    }
+
+    .filmstrip-slide {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease;
+    }
+
+    .filmstrip-slide.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .filmstrip-slide img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
       display: block;
     }
 
-    .tapestry-caption {
-      padding: 10px 4px 0;
-      font-size: 11px;
-      color: var(--dim);
+    .filmstrip-meta {
+      padding: 14px 6px 4px;
       display: flex;
       justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: var(--dim);
     }
 
-    /* 4 Yakshas Minimal Row */
+    .filmstrip-counter {
+      color: var(--gold-bright);
+      font-weight: 700;
+    }
+
+    .filmstrip-nav-arrows {
+      display: flex;
+      gap: 8px;
+    }
+
+    .filmstrip-arrow-btn {
+      background: var(--card-elevated);
+      border: 1px solid var(--line);
+      color: var(--gold-bright);
+      width: 36px;
+      height: 36px;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+
+    .filmstrip-arrow-btn:hover {
+      border-color: var(--gold);
+      background: var(--gold);
+      color: #000;
+    }
+
+    /* Thumbnails Row */
+    .thumbnails-track {
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+      padding: 12px 2px 4px;
+      scrollbar-width: thin;
+      scrollbar-color: var(--line) transparent;
+    }
+
+    .thumb-item {
+      flex: 0 0 110px;
+      height: 70px;
+      border: 1px solid var(--line);
+      background: #000;
+      cursor: pointer;
+      opacity: 0.55;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .thumb-item:hover,
+    .thumb-item.active {
+      opacity: 1;
+      border-color: var(--gold);
+      box-shadow: 0 0 12px rgba(212, 175, 55, 0.35);
+    }
+
+    .thumb-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .thumb-item-num {
+      position: absolute;
+      bottom: 2px;
+      right: 4px;
+      font-size: 9px;
+      background: rgba(0,0,0,0.85);
+      color: var(--gold-bright);
+      padding: 1px 4px;
+      border-radius: 2px;
+    }
+
+    /* ==========================================================================
+       BEFORE / AFTER COMPARISON SLIDER
+       ========================================================================== */
+    .comparison-container {
+      position: relative;
+      width: 100%;
+      height: 460px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      background: var(--card);
+      user-select: none;
+      -webkit-user-select: none;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+      margin-bottom: 40px;
+    }
+
+    .comparison-img {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      pointer-events: none;
+    }
+
+    .comparison-before {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 50%;
+      overflow: hidden;
+      z-index: 2;
+    }
+
+    .comparison-before .comparison-img {
+      width: var(--container-width, 100%);
+      max-width: none;
+    }
+
+    .comparison-badge {
+      position: absolute;
+      top: 16px;
+      padding: 6px 14px;
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      font-weight: 700;
+      border-radius: 3px;
+      z-index: 4;
+      pointer-events: none;
+    }
+
+    .badge-before {
+      left: 16px;
+      background: rgba(197, 61, 36, 0.85);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .badge-after {
+      right: 16px;
+      background: rgba(212, 175, 55, 0.85);
+      color: #0c0906;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+    }
+
+    /* Slider Handle */
+    .comparison-handle {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      width: 3px;
+      background: var(--gold-bright);
+      z-index: 5;
+      cursor: ew-resize;
+      box-shadow: 0 0 16px rgba(212, 175, 55, 0.9);
+    }
+
+    .handle-circle {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--bg);
+      border: 2px solid var(--gold-bright);
+      display: grid;
+      place-items: center;
+      color: var(--gold-bright);
+      font-size: 13px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.8);
+    }
+
+    /* ==========================================================================
+       FOUR GUARDIANS (YAKSHA PANTHEON)
+       ========================================================================== */
     .yakshas-row {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 16px;
-      margin-bottom: 60px;
+      gap: 18px;
+      margin-bottom: 50px;
     }
 
     .yaksha-mini {
       border: 1px solid var(--line);
       background: var(--card);
-      padding: 20px;
+      padding: 24px 18px;
       text-align: center;
+      transition: transform 0.3s ease, border-color 0.3s ease;
+      position: relative;
+    }
+
+    .yaksha-mini:hover {
+      transform: translateY(-4px);
+      border-color: var(--gold);
     }
 
     .yaksha-glyph {
       font-family: var(--font-sanskrit);
-      font-size: 28px;
+      font-size: 32px;
       color: var(--gold);
-      margin-bottom: 8px;
+      margin-bottom: 10px;
+      line-height: 1;
     }
 
     .yaksha-name {
       font-family: var(--font-display);
-      font-size: 14px;
+      font-size: 15px;
       color: var(--gold-bright);
-      letter-spacing: 0.1em;
+      letter-spacing: 0.12em;
     }
 
     .yaksha-role {
       font-size: 10px;
       color: var(--dim);
       text-transform: uppercase;
-      letter-spacing: 0.12em;
-      margin-top: 4px;
+      letter-spacing: 0.14em;
+      margin-top: 6px;
     }
 
-    /* Fast 3-Step Install */
-    .install-bar {
+    /* ==========================================================================
+       EXPANDABLE INSTALLATION ACCORDION
+       ========================================================================== */
+    .install-accordion {
       border: 1px solid var(--line);
       background: var(--card);
-      padding: 32px;
+      border-radius: 6px;
       margin-bottom: 40px;
+      overflow: hidden;
+    }
+
+    .install-accordion[open] {
+      border-color: var(--gold);
+    }
+
+    .install-accordion summary {
+      padding: 18px 24px;
+      cursor: pointer;
+      font-family: var(--font-display);
+      font-size: 14px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--gold-bright);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      user-select: none;
+    }
+
+    .install-accordion summary::-webkit-details-marker { display: none; }
+
+    .install-accordion summary::after {
+      content: "HOW TO INSTALL ↓";
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--dim);
+    }
+
+    .install-accordion[open] summary::after {
+      content: "HIDE STEPS ↑";
+    }
+
+    .install-steps-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 28px;
+      gap: 24px;
+      padding: 24px;
+      border-top: 1px solid var(--line);
     }
 
     .step-unit {
@@ -356,52 +825,172 @@
     .step-text p {
       font-size: 12px;
       color: var(--dim);
-      line-height: 1.4;
+      line-height: 1.5;
     }
 
-    /* Checksum verification bar */
-    .hash-bar {
-      border: 1px solid var(--line);
-      padding: 14px 20px;
+    /* ==========================================================================
+       STICKY BOTTOM DOWNLOAD BAR
+       ========================================================================== */
+    .sticky-download-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      background: rgba(10, 8, 6, 0.94);
+      border-top: 1px solid var(--line-bright);
+      backdrop-filter: blur(14px);
+      padding: 12px 24px;
+      transform: translateY(100%);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 -10px 40px rgba(0,0,0,0.85);
+    }
+
+    .sticky-download-bar.active {
+      transform: translateY(0);
+    }
+
+    .sticky-bar-inner {
+      width: min(var(--max-w), calc(100% - 20px));
+      margin-inline: auto;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 20px;
+    }
+
+    .sticky-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .sticky-title {
+      font-family: var(--font-display);
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--gold-bright);
+      letter-spacing: 0.1em;
+    }
+
+    .sticky-meta {
       font-size: 11px;
       color: var(--dim);
-      margin-bottom: 50px;
-      background: #0d0a08;
-      flex-wrap: wrap;
-      gap: 12px;
     }
 
-    .hash-bar code {
-      color: var(--gold);
+    .btn-sticky {
+      background: linear-gradient(135deg, #fae8b8 0%, #d4af37 50%, #9e7322 100%);
+      color: #0c0906;
+      text-decoration: none;
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      padding: 10px 22px;
+      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid var(--gold-bright);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-sticky:hover {
+      filter: brightness(1.1);
+      box-shadow: 0 4px 20px rgba(212, 175, 55, 0.4);
+    }
+
+    .btn-sticky.download-active {
+      background: linear-gradient(135deg, #86efac 0%, #22c55e 50%, #15803d 100%);
+      color: #052e16;
+      border-color: #86efac;
+    }
+
+    /* ==========================================================================
+       INTERACTIVE LIGHTBOX MODAL WITH ZOOM & PAN
+       ========================================================================== */
+    .lightbox-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(5, 4, 3, 0.96);
+      backdrop-filter: blur(12px);
+      z-index: 12000;
+      place-items: center;
+      padding: 20px;
+      touch-action: none;
+    }
+
+    .lightbox-modal.open {
+      display: grid;
+    }
+
+    .lightbox-wrapper {
+      position: relative;
+      max-width: 94vw;
+      max-height: 88vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .lightbox-img-box {
+      max-width: 90vw;
+      max-height: 78vh;
+      overflow: hidden;
+      border: 1px solid var(--gold);
+      background: #000;
+      cursor: zoom-in;
+      display: grid;
+      place-items: center;
+      position: relative;
+    }
+
+    .lightbox-img-box.zoomed {
+      cursor: zoom-out;
+    }
+
+    .lightbox-img-box img {
+      max-width: 100%;
+      max-height: 78vh;
+      display: block;
+      transition: transform 0.25s ease;
+      transform-origin: center center;
+    }
+
+    .lightbox-controls {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      padding-top: 12px;
+      font-size: 11px;
+      color: var(--dim);
+    }
+
+    .lightbox-btn {
+      background: transparent;
+      border: 1px solid var(--line);
+      color: var(--gold-bright);
+      padding: 6px 14px;
       font-family: var(--font-mono);
       font-size: 11px;
-    }
-
-    .copy-pill {
-      background: transparent;
-      border: 1px solid var(--gold);
-      color: var(--gold);
-      padding: 4px 10px;
-      font-family: var(--font-mono);
-      font-size: 10px;
       cursor: pointer;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
       transition: all 0.2s;
     }
 
-    .copy-pill:hover {
-      background: var(--gold);
-      color: #000;
+    .lightbox-btn:hover {
+      border-color: var(--gold);
+      background: rgba(212, 175, 55, 0.15);
     }
 
-    /* Editorial Credits & Footer */
+    /* ==========================================================================
+       FOOTER & CREDITS
+       ========================================================================== */
     .site-footer {
       border-top: 1px solid var(--line);
-      padding: 48px 0 60px;
+      padding: 50px 0 80px;
+      margin-top: 50px;
       display: grid;
       grid-template-columns: 1.2fr 1fr;
       gap: 40px;
@@ -432,7 +1021,7 @@
     }
 
     .creator-desc {
-      font-family: Georgia, serif;
+      font-family: var(--font-serif);
       font-size: 14px;
       color: var(--cream);
       line-height: 1.6;
@@ -489,67 +1078,74 @@
       color: var(--cream);
     }
 
-    /* Lightbox Modal */
-    .lightbox {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.95);
-      z-index: 9999;
-      place-items: center;
-      padding: 20px;
-    }
-
-    .lightbox.active { display: grid; }
-
-    .lightbox img {
-      max-width: 94vw;
-      max-height: 88vh;
-      border: 1px solid var(--gold);
-    }
-
-    @media (max-width: 840px) {
-      .hero { grid-template-columns: 1fr; gap: 32px; }
-      .board-strip { grid-template-columns: 1fr; }
+    /* Responsive */
+    @media (max-width: 900px) {
+      .hero { grid-template-columns: 1fr; gap: 36px; }
+      .floating-nav { display: none; }
+      .install-steps-grid { grid-template-columns: 1fr; }
       .yakshas-row { grid-template-columns: repeat(2, 1fr); }
-      .install-bar { grid-template-columns: 1fr; }
-      .site-footer { grid-template-columns: 1fr; gap: 32px; }
+      .site-footer { grid-template-columns: 1fr; }
       .footer-right { align-items: flex-start; }
       .footer-legal { text-align: left; }
+      .filmstrip-viewport { height: 320px; }
+      .comparison-container { height: 320px; }
     }
   </style>
 </head>
 <body>
 
+  <!-- Living Ambient Canvas & Noise Texture -->
+  <canvas id="ambientCanvas" class="ambient-canvas" aria-hidden="true"></canvas>
+  <div class="noise-overlay" aria-hidden="true"></div>
+
+  <!-- Scroll Progress Bar -->
+  <div id="scrollProgressBar" class="scroll-progress-bar" aria-hidden="true"></div>
+
+  <!-- Floating Section Pill Navigation -->
+  <nav class="floating-nav" id="floatingNav" aria-label="Quick Page Navigation">
+    <a href="#hero" class="active">Overview</a>
+    <a href="#visuals">Visuals</a>
+    <a href="#comparison">Compare</a>
+    <a href="#guardians">Guardians</a>
+    <a href="#install">Install</a>
+  </nav>
+
   <div class="wrap">
-    <!-- Header -->
-    <header>
-      <div class="brand-mark">
+    <!-- Masthead -->
+    <header class="site-header">
+      <a class="brand-mark" href="#hero">
         <span class="devanagari">ज्ञ</span>
         <span>GYAN CHAUPAR · MOKSHA PATAM</span>
-      </div>
-      <div class="creator-header-tag">
+      </a>
+      <div class="creator-tag">
         <span>BY</span>
         <a href="https://www.linkedin.com/in/gauransh-bansal-a71223239/" target="_blank" rel="noopener noreferrer">GAURANSH BANSAL</a>
       </div>
     </header>
 
-    <!-- Poster Hero -->
-    <section class="hero">
-      <div>
+    <!-- Main Hero Section -->
+    <section class="hero" id="hero">
+      <div class="hero-text-col">
         <div class="tagline">The Original 72-Square Sacred Board</div>
-        <h1>Gyan<br>Chaupar</h1>
+        <h1 class="engraved-title">Gyan<br>Chaupar</h1>
         <p class="subhead">
           The ancient philosophical predecessor to Snakes &amp; Ladders. Ascend through virtues, face the serpents of vice, and navigate 72 squares to liberation.
         </p>
 
-        <div class="download-block">
-          <a class="btn-main" href="assets/Gyan-Chaupar.apk" download="Gyan-Chaupar.apk">
+        <!-- Fast Direct Download Block -->
+        <div class="download-block" id="heroDownloadBlock">
+          <!-- The One-Click Immediate Download Button -->
+          <a class="btn-main magnetic-target" id="primaryDownloadBtn" href="assets/Gyan-Chaupar.apk" download="Gyan-Chaupar.apk">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
               <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
             </svg>
-            DOWNLOAD APK (22.1 MB)
+            <span class="btn-label">DOWNLOAD APK (22.1 MB)</span>
           </a>
+
+          <!-- Device-Aware Subtle Detection Banner -->
+          <div class="device-detection" id="deviceDetection">
+            <!-- Populated via JavaScript dynamically -->
+          </div>
 
           <div class="specs-pill-bar">
             <span><strong>v1.4</strong> BUILD</span>
@@ -560,115 +1156,204 @@
             <span>·</span>
             <span><strong>ZERO ADS</strong></span>
           </div>
+
+          <!-- Expandable Integrity Verification -->
+          <details class="verify-details">
+            <summary>🔒 Verify Download Integrity (SHA-256)</summary>
+            <div class="verify-content">
+              <p>Compare this checksum after download to verify package authenticity:</p>
+              <div class="hash-display">
+                <code id="shaHash">BC498A0449F7C327D17DC2C02E8968142A5216D5DA1815126C9C97F1DED011C8</code>
+                <button class="copy-pill" id="copyHashBtn" title="Copy SHA-256 Hash">Copy Hash</button>
+              </div>
+              <p style="font-size: 10px; margin-top: 6px;">
+                Windows: <code>Get-FileHash -Path Gyan-Chaupar.apk -Algorithm SHA256</code>
+              </p>
+            </div>
+          </details>
         </div>
       </div>
 
-      <div class="hero-art">
-        <img src="assets/hero.png" alt="Gyan Chaupar Cover Art">
+      <!-- Hero Visual with Subtle Parallax & 3D Tilt -->
+      <div class="hero-art-col">
+        <div class="hero-art-wrapper" id="heroArtWrapper">
+          <img src="assets/hero.png" alt="Gyan Chaupar Cover Art" id="heroArtImg">
+        </div>
       </div>
     </section>
 
-    <!-- Gallery / Art Showcase -->
-    <div class="gallery-title">
-      Game Visuals
-      <span>[Click to expand]</span>
-    </div>
-
-    <div class="board-strip">
-      <figure class="board-card" onclick="openLightbox('assets/board.png')">
-        <img src="assets/board.png" alt="72-Square Board">
-        <figcaption><span>THE 72-SQUARE BOARD</span><span>01</span></figcaption>
-      </figure>
-
-      <figure class="board-card" onclick="openLightbox('assets/setup.png')">
-        <img src="assets/setup.png" alt="Yaksha Setup">
-        <figcaption><span>YAKSHA SELECTION</span><span>02</span></figcaption>
-      </figure>
-
-      <figure class="board-card" onclick="openLightbox('assets/welcome.png')">
-        <img src="assets/welcome.png" alt="Welcome Portal">
-        <figcaption><span>WELCOME PORTAL</span><span>03</span></figcaption>
-      </figure>
-    </div>
-
-    <div class="tapestry-frame" onclick="openLightbox('assets/campaign.png')">
-      <img src="assets/campaign.png" alt="The 10-Panel Storyboard">
-      <div class="tapestry-caption">
-        <span>THE 10-PANEL KARMIC TAPESTRY</span>
-        <span style="color:var(--gold)">ENLARGE FOLIO ↗</span>
+    <!-- SECTION 1: VISUALS (INTERACTIVE GALLERY FILMSTRIP) -->
+    <section class="fade-in-section" id="visuals">
+      <div class="section-title">
+        Visual Showcase
+        <span class="sub">[Interactive Filmstrip · Click to Zoom]</span>
       </div>
-    </div>
 
-    <!-- The 4 Yakshas -->
-    <div class="gallery-title">
-      The 4 Guardians
-      <span>Player Archetypes</span>
-    </div>
+      <div class="filmstrip-container">
+        <!-- Main Slide Viewport -->
+        <div class="filmstrip-viewport" id="filmstripViewport" title="Click to zoom in full lightbox">
+          <div class="filmstrip-slide active" data-index="0" data-caption="The 72-Square Sacred Board (Top-Down View)">
+            <img src="assets/stills/06_gameplay_topdown.png" alt="72-Square Sacred Board">
+          </div>
+          <div class="filmstrip-slide" data-index="1" data-caption="3D Carved Relief Board & Real-Time Camera Orbit">
+            <img src="assets/stills/07_gameplay_cinematic_closeup.png" alt="3D Carved Board Relief">
+          </div>
+          <div class="filmstrip-slide" data-index="2" data-caption="Authentic 6-Cowrie Shell Dice Probability Physics">
+            <img src="assets/stills/08_dice_roll_action.png" alt="Cowrie Dice Roll Action">
+          </div>
+          <div class="filmstrip-slide" data-index="3" data-caption="Square Philosophy, Lore & Sanskrit Inspection">
+            <img src="assets/stills/09_square_inspection.png" alt="Square Lore Inspection">
+          </div>
+          <div class="filmstrip-slide" data-index="4" data-caption="Yaksha Guardian Archetype & Pilgrim Selection">
+            <img src="assets/stills/04_pilgrim_setup.png" alt="Yaksha Pilgrim Selection">
+          </div>
+          <div class="filmstrip-slide" data-index="5" data-caption="Sanctum Title Portal Chamber">
+            <img src="assets/stills/01_welcome_screen.png" alt="Welcome Sanctum Portal">
+          </div>
+          <div class="filmstrip-slide" data-index="6" data-caption="The 10-Panel Karmic Tapestry Chronicles">
+            <img src="assets/campaign.png" alt="10-Panel Karmic Tapestry">
+          </div>
+        </div>
 
-    <div class="yakshas-row">
-      <div class="yaksha-mini">
-        <div class="yaksha-glyph">कु</div>
-        <div class="yaksha-name">KUBERA</div>
-        <div class="yaksha-role">True Wealth</div>
-      </div>
-      <div class="yaksha-mini">
-        <div class="yaksha-glyph">शं</div>
-        <div class="yaksha-name">ŚAṄKHA</div>
-        <div class="yaksha-role">Resonance</div>
-      </div>
-      <div class="yaksha-mini">
-        <div class="yaksha-glyph">प</div>
-        <div class="yaksha-name">PADMA</div>
-        <div class="yaksha-role">Lotus Purity</div>
-      </div>
-      <div class="yaksha-mini">
-        <div class="yaksha-glyph">गु</div>
-        <div class="yaksha-name">GUHYAKA</div>
-        <div class="yaksha-role">Hidden Ways</div>
-      </div>
-    </div>
+        <!-- Filmstrip Controls -->
+        <div class="filmstrip-meta">
+          <div id="filmstripCaption">The 72-Square Sacred Board (Top-Down View)</div>
+          <div style="display:flex; align-items:center; gap: 16px;">
+            <span class="filmstrip-counter" id="filmstripCounter">01 / 07</span>
+            <div class="filmstrip-nav-arrows">
+              <button class="filmstrip-arrow-btn" id="prevSlideBtn" aria-label="Previous Slide">‹</button>
+              <button class="filmstrip-arrow-btn" id="nextSlideBtn" aria-label="Next Slide">›</button>
+            </div>
+          </div>
+        </div>
 
-    <!-- Fast 3-Step Install -->
-    <div class="install-bar">
-      <div class="step-unit">
-        <div class="step-idx">01</div>
-        <div class="step-text">
-          <strong>Download File</strong>
-          <p>Get <code>Gyan-Chaupar.apk</code> directly from the button above.</p>
+        <!-- Thumbnails Strip -->
+        <div class="thumbnails-track" id="thumbsTrack">
+          <div class="thumb-item active" data-index="0">
+            <img src="assets/stills/06_gameplay_topdown.png" alt="Thumb 1">
+            <span class="thumb-item-num">01</span>
+          </div>
+          <div class="thumb-item" data-index="1">
+            <img src="assets/stills/07_gameplay_cinematic_closeup.png" alt="Thumb 2">
+            <span class="thumb-item-num">02</span>
+          </div>
+          <div class="thumb-item" data-index="2">
+            <img src="assets/stills/08_dice_roll_action.png" alt="Thumb 3">
+            <span class="thumb-item-num">03</span>
+          </div>
+          <div class="thumb-item" data-index="3">
+            <img src="assets/stills/09_square_inspection.png" alt="Thumb 4">
+            <span class="thumb-item-num">04</span>
+          </div>
+          <div class="thumb-item" data-index="4">
+            <img src="assets/stills/04_pilgrim_setup.png" alt="Thumb 5">
+            <span class="thumb-item-num">05</span>
+          </div>
+          <div class="thumb-item" data-index="5">
+            <img src="assets/stills/01_welcome_screen.png" alt="Thumb 6">
+            <span class="thumb-item-num">06</span>
+          </div>
+          <div class="thumb-item" data-index="6">
+            <img src="assets/campaign.png" alt="Thumb 7">
+            <span class="thumb-item-num">07</span>
+          </div>
         </div>
       </div>
-      <div class="step-unit">
-        <div class="step-idx">02</div>
-        <div class="step-text">
-          <strong>Enable Sideload</strong>
-          <p>Toggle "Allow from this source" when Android package installer prompts.</p>
+    </section>
+
+    <!-- SECTION 2: IMAGE COMPARISON SLIDER -->
+    <section class="fade-in-section" id="comparison">
+      <div class="section-title">
+        Restoration Comparison
+        <span class="sub">[Drag Divider to Compare]</span>
+      </div>
+
+      <div class="comparison-container" id="comparisonSlider">
+        <!-- Background (Restored 3D Carved Board) -->
+        <img class="comparison-img" src="assets/stills/06_gameplay_topdown.png" alt="Restored 3D Board">
+        <span class="comparison-badge badge-after">3D Carved Restoration</span>
+
+        <!-- Foreground (Archival / Colonial Flat View) -->
+        <div class="comparison-before" id="comparisonBefore">
+          <img class="comparison-img" id="comparisonBeforeImg" src="assets/board.png" alt="Archival Flat Board">
+        </div>
+        <span class="comparison-badge badge-before">Archival 2D Board</span>
+
+        <!-- Draggable Handle -->
+        <div class="comparison-handle" id="comparisonHandle">
+          <div class="handle-circle">↔</div>
         </div>
       </div>
-      <div class="step-unit">
-        <div class="step-idx">03</div>
-        <div class="step-text">
-          <strong>Play Offline</strong>
-          <p>Self-contained package. No account, internet, or login required.</p>
+    </section>
+
+    <!-- SECTION 3: THE FOUR GUARDIANS -->
+    <section class="fade-in-section" id="guardians">
+      <div class="section-title">
+        The 4 Guardians
+        <span class="sub">[Yaksha Archetypes]</span>
+      </div>
+
+      <div class="yakshas-row">
+        <div class="yaksha-mini">
+          <div class="yaksha-glyph">कु</div>
+          <div class="yaksha-name">KUBERA</div>
+          <div class="yaksha-role">True Wealth</div>
+        </div>
+        <div class="yaksha-mini">
+          <div class="yaksha-glyph">शं</div>
+          <div class="yaksha-name">ŚAṄKHA</div>
+          <div class="yaksha-role">Resonance</div>
+        </div>
+        <div class="yaksha-mini">
+          <div class="yaksha-glyph">प</div>
+          <div class="yaksha-name">PADMA</div>
+          <div class="yaksha-role">Lotus Purity</div>
+        </div>
+        <div class="yaksha-mini">
+          <div class="yaksha-glyph">गु</div>
+          <div class="yaksha-name">GUHYAKA</div>
+          <div class="yaksha-role">Hidden Ways</div>
         </div>
       </div>
-    </div>
+    </section>
 
-    <!-- SHA-256 Hash Verification -->
-    <div class="hash-bar">
-      <div>
-        <span>SHA-256: </span>
-        <code id="hashVal">BC498A0449F7C327D17DC2C02E8968142A5216D5DA1815126C9C97F1DED011C8</code>
-      </div>
-      <button class="copy-pill" id="copyBtn">Copy Hash</button>
-    </div>
+    <!-- SECTION 4: EXPANDABLE INSTALLATION STEPS -->
+    <section class="fade-in-section" id="install">
+      <details class="install-accordion" open>
+        <summary>Android Installation Guide</summary>
+        <div class="install-steps-grid">
+          <div class="step-unit">
+            <div class="step-idx">01</div>
+            <div class="step-text">
+              <strong>Download APK</strong>
+              <p>Tap the download button to save <code>Gyan-Chaupar.apk</code> directly into your device's Downloads folder.</p>
+            </div>
+          </div>
+          <div class="step-unit">
+            <div class="step-idx">02</div>
+            <div class="step-text">
+              <strong>Allow Unknown Apps</strong>
+              <p>If prompted by Android Package Installer, select <em>Settings</em> and toggle <em>"Allow from this source"</em>.</p>
+            </div>
+          </div>
+          <div class="step-unit">
+            <div class="step-idx">03</div>
+            <div class="step-text">
+              <strong>Play Offline</strong>
+              <p>Tap Install. The game runs 100% locally with zero internet, ad networks, or account tracking.</p>
+            </div>
+          </div>
+        </div>
+      </details>
+    </section>
 
-    <!-- Curated Credits & Footer -->
+    <!-- FOOTER & CREDITS -->
     <footer class="site-footer">
       <div class="creator-box">
-        <div class="creator-label">Design &amp; Development</div>
+        <div class="creator-label">Design &amp; Creative Direction</div>
         <div class="creator-name">Gauransh Bansal</div>
         <p class="creator-desc">
-          Digital recreation, 3D carved board architecture, and cultural preservation of the ancient 72-square Moksha Patam game.
+          Conceived, directed, and brought to life as an offline Android APK. A personal tribute to the philosophical roots of Moksha Patam.
         </p>
       </div>
 
@@ -680,17 +1365,11 @@
             </svg>
             LinkedIn
           </a>
-          <a href="https://github.com/gauranshbansal" target="_blank" rel="noopener noreferrer" class="social-btn">
+          <a href="https://github.com/gauranshbansal/gyan-chaupar-game" target="_blank" rel="noopener noreferrer" class="social-btn">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
               <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
             </svg>
             GitHub
-          </a>
-          <a href="mailto:gauranshbansal2205@gmail.com" class="social-btn">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 12.713l-11.985-9.713h23.97l-11.985 9.713zm0 2.574l-12-9.725v15.438h24v-15.438l-12 9.725z"/>
-            </svg>
-            Contact
           </a>
         </div>
 
@@ -702,31 +1381,390 @@
     </footer>
   </div>
 
-  <!-- Lightbox Modal -->
-  <div class="lightbox" id="lightbox" onclick="closeLightbox()">
-    <img id="lightbox-img" src="" alt="Enlarged view">
+  <!-- STICKY BOTTOM DOWNLOAD BAR (APPEARS AFTER HERO CTA LEAVES VIEW) -->
+  <aside class="sticky-download-bar" id="stickyDownloadBar" aria-label="Persistent Download Bar">
+    <div class="sticky-bar-inner">
+      <div class="sticky-left">
+        <span style="font-family: var(--font-sanskrit); font-size: 18px; color: var(--gold);">ज्ञ</span>
+        <div>
+          <div class="sticky-title">GYAN CHAUPAR</div>
+          <div class="sticky-meta">v1.4 · 22.1 MB · Android APK · Offline</div>
+        </div>
+      </div>
+
+      <a class="btn-sticky magnetic-target" id="stickyDownloadBtn" href="assets/Gyan-Chaupar.apk" download="Gyan-Chaupar.apk">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+        </svg>
+        <span class="sticky-btn-text">DOWNLOAD APK</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- INTERACTIVE LIGHTBOX MODAL WITH ZOOM & PAN -->
+  <div class="lightbox-modal" id="lightboxModal" role="dialog" aria-modal="true" aria-label="Image Zoom Lightbox">
+    <div class="lightbox-wrapper">
+      <div class="lightbox-img-box" id="lightboxImgBox">
+        <img id="lightboxImg" src="" alt="Enlarged view">
+      </div>
+      <div class="lightbox-controls">
+        <span id="lightboxCaption">Gallery Inspection</span>
+        <div style="display: flex; gap: 8px;">
+          <button class="lightbox-btn" id="lightboxZoomToggle">[ ZOOM ]</button>
+          <button class="lightbox-btn" id="lightboxCloseBtn">[ CLOSE × ]</button>
+        </div>
+      </div>
+    </div>
   </div>
 
+  <!-- ==========================================================================
+       CLIENT-SIDE SCRIPTS: INTERACTIONS, PARALLAX, GALLERY & DOWNLOAD FEEDBACK
+       ========================================================================== -->
   <script>
-    function openLightbox(src) {
-      document.getElementById('lightbox-img').src = src;
-      document.getElementById('lightbox').classList.add('active');
+    // -------------------------------------------------------------------------
+    // 1. SCROLL PROGRESS INDICATOR
+    // -------------------------------------------------------------------------
+    const progressBar = document.getElementById('scrollProgressBar');
+    window.addEventListener('scroll', () => {
+      const totalScroll = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = totalScroll > 0 ? (window.scrollY / totalScroll) * 100 : 0;
+      progressBar.style.width = progress + '%';
+    }, { passive: true });
+
+    // -------------------------------------------------------------------------
+    // 2. DEVICE DETECTION (SUBTLE ANDROID INDICATION)
+    // -------------------------------------------------------------------------
+    const deviceDetection = document.getElementById('deviceDetection');
+    const isAndroid = /Android/i.test(navigator.userAgent);
+    if (isAndroid) {
+      deviceDetection.innerHTML = `
+        <span class="device-pill android">
+          <span style="font-size:12px">●</span> Android device detected — direct 1-tap installation
+        </span>
+      `;
+    } else {
+      deviceDetection.innerHTML = `
+        <span class="device-pill desktop">
+          Download APK and transfer to your Android device (or test in an emulator)
+        </span>
+      `;
     }
-    function closeLightbox() {
-      document.getElementById('lightbox').classList.remove('active');
+
+    // -------------------------------------------------------------------------
+    // 3. IMMEDIATE DOWNLOAD FEEDBACK (NEVER DELAYS OR BLOCKS THE FILE)
+    // -------------------------------------------------------------------------
+    function attachDownloadFeedback(btn, originalHTML) {
+      if (!btn) return;
+      btn.addEventListener('click', () => {
+        btn.classList.add('download-active');
+        const label = btn.querySelector('.btn-label') || btn.querySelector('.sticky-btn-text');
+        if (label) {
+          const prevText = label.textContent;
+          label.textContent = "DOWNLOAD STARTED ✓";
+          setTimeout(() => {
+            btn.classList.remove('download-active');
+            label.textContent = prevText;
+          }, 2400);
+        }
+      });
     }
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closeLightbox();
+    attachDownloadFeedback(document.getElementById('primaryDownloadBtn'));
+    attachDownloadFeedback(document.getElementById('stickyDownloadBtn'));
+
+    // -------------------------------------------------------------------------
+    // 4. PERSISTENT STICKY DOWNLOAD BAR VIA INTERSECTION OBSERVER
+    // -------------------------------------------------------------------------
+    const heroDownloadBlock = document.getElementById('heroDownloadBlock');
+    const stickyBar = document.getElementById('stickyDownloadBar');
+    const heroObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) {
+          stickyBar.classList.add('active');
+        } else {
+          stickyBar.classList.remove('active');
+        }
+      });
+    }, { threshold: 0.1 });
+    if (heroDownloadBlock) heroObserver.observe(heroDownloadBlock);
+
+    // -------------------------------------------------------------------------
+    // 5. REVEAL-ON-SCROLL & FLOATING NAV ACTIVE STATE
+    // -------------------------------------------------------------------------
+    const sections = document.querySelectorAll('.fade-in-section, section.hero');
+    const navLinks = document.querySelectorAll('.floating-nav a');
+    const sectionObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-revealed');
+          const id = entry.target.getAttribute('id');
+          navLinks.forEach(link => {
+            if (link.getAttribute('href') === '#' + id) {
+              link.classList.add('active');
+            } else {
+              link.classList.remove('active');
+            }
+          });
+        }
+      });
+    }, { threshold: 0.2 });
+    sections.forEach(sec => sectionObserver.observe(sec));
+
+    // -------------------------------------------------------------------------
+    // 6. SUBTLE HERO ARTWORK PARALLAX & 3D TILT
+    // -------------------------------------------------------------------------
+    const heroArtWrapper = document.getElementById('heroArtWrapper');
+    if (heroArtWrapper && window.matchMedia('(pointer: fine)').matches) {
+      window.addEventListener('mousemove', (e) => {
+        const rect = heroArtWrapper.getBoundingClientRect();
+        const x = e.clientX - (rect.left + rect.width / 2);
+        const y = e.clientY - (rect.top + rect.height / 2);
+        const tiltX = (y / (rect.height / 2)) * -3.5;
+        const tiltY = (x / (rect.width / 2)) * 3.5;
+        heroArtWrapper.style.transform = `perspective(1000px) rotateX(${tiltX.toFixed(2)}deg) rotateY(${tiltY.toFixed(2)}deg) scale(1.01)`;
+      });
+      heroArtWrapper.addEventListener('mouseleave', () => {
+        heroArtWrapper.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)';
+      });
+    }
+
+    // -------------------------------------------------------------------------
+    // 7. MAGNETIC HOVER EFFECT ON PRIMARY CTA BUTTONS
+    // -------------------------------------------------------------------------
+    document.querySelectorAll('.magnetic-target').forEach(el => {
+      if (window.matchMedia('(pointer: fine)').matches) {
+        el.addEventListener('mousemove', (e) => {
+          const rect = el.getBoundingClientRect();
+          const relX = e.clientX - rect.left - rect.width / 2;
+          const relY = e.clientY - rect.top - rect.height / 2;
+          el.style.transform = `translate(${relX * 0.15}px, ${relY * 0.15}px)`;
+        });
+        el.addEventListener('mouseleave', () => {
+          el.style.transform = 'translate(0px, 0px)';
+        });
+      }
     });
 
-    const copyBtn = document.getElementById('copyBtn');
-    if (copyBtn) {
-      copyBtn.addEventListener('click', () => {
-        navigator.clipboard.writeText(document.getElementById('hashVal').textContent.trim()).then(() => {
-          copyBtn.textContent = 'COPIED ✓';
-          setTimeout(() => copyBtn.textContent = 'COPY HASH', 2000);
+    // -------------------------------------------------------------------------
+    // 8. ONE-CLICK SHA-256 COPY FEEDBACK
+    // -------------------------------------------------------------------------
+    const copyHashBtn = document.getElementById('copyHashBtn');
+    const shaHash = document.getElementById('shaHash');
+    if (copyHashBtn && shaHash) {
+      copyHashBtn.addEventListener('click', () => {
+        navigator.clipboard.writeText(shaHash.textContent.trim()).then(() => {
+          copyHashBtn.textContent = 'COPIED TO CLIPBOARD ✓';
+          copyHashBtn.classList.add('copied');
+          setTimeout(() => {
+            copyHashBtn.textContent = 'Copy Hash';
+            copyHashBtn.classList.remove('copied');
+          }, 2400);
         });
       });
+    }
+
+    // -------------------------------------------------------------------------
+    // 9. GALLERY FILMSTRIP (HORIZONTAL CAROUSEL)
+    // -------------------------------------------------------------------------
+    const slides = document.querySelectorAll('.filmstrip-slide');
+    const thumbs = document.querySelectorAll('.thumb-item');
+    const captionEl = document.getElementById('filmstripCaption');
+    const counterEl = document.getElementById('filmstripCounter');
+    let currentSlide = 0;
+
+    function goToSlide(idx) {
+      if (idx < 0) idx = slides.length - 1;
+      if (idx >= slides.length) idx = 0;
+      currentSlide = idx;
+
+      slides.forEach((s, i) => s.classList.toggle('active', i === currentSlide));
+      thumbs.forEach((t, i) => t.classList.toggle('active', i === currentSlide));
+
+      const activeSlide = slides[currentSlide];
+      if (captionEl) captionEl.textContent = activeSlide.getAttribute('data-caption');
+      if (counterEl) counterEl.textContent = `0${currentSlide + 1} / 0${slides.length}`;
+
+      // Scroll thumbnail into view smoothly
+      if (thumbs[currentSlide]) {
+        thumbs[currentSlide].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      }
+    }
+
+    document.getElementById('prevSlideBtn')?.addEventListener('click', () => goToSlide(currentSlide - 1));
+    document.getElementById('nextSlideBtn')?.addEventListener('click', () => goToSlide(currentSlide + 1));
+    thumbs.forEach(t => {
+      t.addEventListener('click', () => {
+        goToSlide(parseInt(t.getAttribute('data-index'), 10));
+      });
+    });
+
+    // -------------------------------------------------------------------------
+    // 10. BEFORE / AFTER COMPARISON SLIDER
+    // -------------------------------------------------------------------------
+    const slider = document.getElementById('comparisonSlider');
+    const beforeBox = document.getElementById('comparisonBefore');
+    const handle = document.getElementById('comparisonHandle');
+    const beforeImg = document.getElementById('comparisonBeforeImg');
+
+    function syncComparisonWidth() {
+      if (slider && beforeImg) {
+        beforeImg.style.width = slider.offsetWidth + 'px';
+      }
+    }
+    window.addEventListener('resize', syncComparisonWidth);
+    syncComparisonWidth();
+
+    let isSliding = false;
+    function moveSlider(clientX) {
+      if (!slider) return;
+      const rect = slider.getBoundingClientRect();
+      let pos = (clientX - rect.left) / rect.width;
+      pos = Math.max(0.05, Math.min(0.95, pos));
+      const pct = (pos * 100).toFixed(1) + '%';
+      beforeBox.style.width = pct;
+      handle.style.left = pct;
+    }
+
+    if (slider) {
+      slider.addEventListener('mousedown', (e) => { isSliding = true; moveSlider(e.clientX); });
+      window.addEventListener('mouseup', () => { isSliding = false; });
+      window.addEventListener('mousemove', (e) => { if (isSliding) moveSlider(e.clientX); });
+
+      // Touch events for mobile
+      slider.addEventListener('touchstart', (e) => { isSliding = true; moveSlider(e.touches[0].clientX); }, { passive: true });
+      window.addEventListener('touchend', () => { isSliding = false; });
+      window.addEventListener('touchmove', (e) => { if (isSliding) moveSlider(e.touches[0].clientX); }, { passive: true });
+    }
+
+    // -------------------------------------------------------------------------
+    // 11. INTERACTIVE LIGHTBOX (ZOOM, PAN, KEYBOARD, SWIPE)
+    // -------------------------------------------------------------------------
+    const lightboxModal = document.getElementById('lightboxModal');
+    const lightboxImg = document.getElementById('lightboxImg');
+    const lightboxImgBox = document.getElementById('lightboxImgBox');
+    const lightboxCaption = document.getElementById('lightboxCaption');
+    const zoomToggle = document.getElementById('lightboxZoomToggle');
+    const closeBtn = document.getElementById('lightboxCloseBtn');
+
+    let isZoomed = false;
+    function openLightbox(src, caption) {
+      lightboxImg.src = src;
+      lightboxCaption.textContent = caption || 'Gallery Inspection';
+      lightboxModal.classList.add('open');
+      document.body.style.overflow = 'hidden';
+      isZoomed = false;
+      lightboxImgBox.classList.remove('zoomed');
+      lightboxImg.style.transform = 'scale(1)';
+    }
+
+    function closeLightbox() {
+      lightboxModal.classList.remove('open');
+      document.body.style.overflow = '';
+      isZoomed = false;
+      lightboxImg.style.transform = 'scale(1)';
+    }
+
+    // Clicking viewport opens lightbox with current slide
+    document.getElementById('filmstripViewport')?.addEventListener('click', () => {
+      const currentActive = slides[currentSlide];
+      const img = currentActive.querySelector('img');
+      const caption = currentActive.getAttribute('data-caption');
+      if (img) openLightbox(img.src, caption);
+    });
+
+    if (closeBtn) closeBtn.addEventListener('click', closeLightbox);
+    lightboxModal.addEventListener('click', (e) => {
+      if (e.target === lightboxModal) closeLightbox();
+    });
+
+    // Zoom Toggle
+    function toggleZoom() {
+      isZoomed = !isZoomed;
+      lightboxImgBox.classList.toggle('zoomed', isZoomed);
+      lightboxImg.style.transform = isZoomed ? 'scale(1.7)' : 'scale(1)';
+      zoomToggle.textContent = isZoomed ? '[ RESET ]' : '[ ZOOM ]';
+    }
+    if (zoomToggle) zoomToggle.addEventListener('click', toggleZoom);
+    if (lightboxImgBox) lightboxImgBox.addEventListener('click', toggleZoom);
+
+    // Keyboard Shortcuts: Esc to close, Left/Right to navigate
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeLightbox();
+      if (e.key === 'ArrowLeft') {
+        if (lightboxModal.classList.contains('open')) {
+          goToSlide(currentSlide - 1);
+          const activeSlide = slides[currentSlide];
+          openLightbox(activeSlide.querySelector('img').src, activeSlide.getAttribute('data-caption'));
+        } else {
+          goToSlide(currentSlide - 1);
+        }
+      }
+      if (e.key === 'ArrowRight') {
+        if (lightboxModal.classList.contains('open')) {
+          goToSlide(currentSlide + 1);
+          const activeSlide = slides[currentSlide];
+          openLightbox(activeSlide.querySelector('img').src, activeSlide.getAttribute('data-caption'));
+        } else {
+          goToSlide(currentSlide + 1);
+        }
+      }
+    });
+
+    // Touch Swipe for Lightbox & Filmstrip
+    let touchStartX = 0;
+    lightboxModal.addEventListener('touchstart', (e) => {
+      touchStartX = e.touches[0].clientX;
+    }, { passive: true });
+    lightboxModal.addEventListener('touchend', (e) => {
+      const dx = e.changedTouches[0].clientX - touchStartX;
+      if (Math.abs(dx) > 50) {
+        if (dx < 0) goToSlide(currentSlide + 1);
+        else goToSlide(currentSlide - 1);
+        const activeSlide = slides[currentSlide];
+        openLightbox(activeSlide.querySelector('img').src, activeSlide.getAttribute('data-caption'));
+      }
+    }, { passive: true });
+
+    // -------------------------------------------------------------------------
+    // 12. LIVING BACKGROUND CANVAS (SLOW DRIFTING AMBIENT EMBERS/DUST)
+    // -------------------------------------------------------------------------
+    const canvas = document.getElementById('ambientCanvas');
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      let w, h;
+      function resizeCanvas() {
+        w = canvas.width = window.innerWidth;
+        h = canvas.height = window.innerHeight;
+      }
+      window.addEventListener('resize', resizeCanvas);
+      resizeCanvas();
+
+      // Create 24 ultra-subtle golden dust motes
+      const particles = Array.from({ length: 24 }, () => ({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        radius: Math.random() * 1.5 + 0.5,
+        alpha: Math.random() * 0.4 + 0.1,
+        speedX: (Math.random() - 0.5) * 0.2,
+        speedY: (Math.random() * -0.3) - 0.08
+      }));
+
+      function renderAmbientParticles() {
+        ctx.clearRect(0, 0, w, h);
+        particles.forEach(p => {
+          p.x += p.speedX;
+          p.y += p.speedY;
+          if (p.y < 0) p.y = h;
+          if (p.x < 0) p.x = w;
+          if (p.x > w) p.x = 0;
+
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(212, 175, 55, ${p.alpha})`;
+          ctx.fill();
+        });
+        requestAnimationFrame(renderAmbientParticles);
+      }
+      renderAmbientParticles();
     }
   </script>
 </body>
