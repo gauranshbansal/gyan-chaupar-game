@@ -3142,14 +3142,14 @@
         for (let j = 0; j < BODY_RADIAL; j++) {
           const a = i * (BODY_RADIAL + 1) + j;
           const b = a + (BODY_RADIAL + 1);
-          bIndices.push(a, b, a + 1);
-          bIndices.push(b, b + 1, a + 1);
+          bIndices.push(a, a + 1, b);
+          bIndices.push(b, a + 1, b + 1);
         }
       }
 
       // Fully seal the neck cross-section (ring 0) with solid scaly outer surface
       for (let j = 0; j < BODY_RADIAL; j++) {
-        bIndices.push(neckCapIdx, j + 1, j);
+        bIndices.push(neckCapIdx, j, j + 1);
       }
 
       const bodyGeo = new THREE.BufferGeometry();
