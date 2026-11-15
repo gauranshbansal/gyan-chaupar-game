@@ -574,14 +574,14 @@
 
     function createInsetLowerGumGeometry() {
       const segZ = 18, segX = 14;
-      const zMin = -0.62, zMax = 1.02;
+      const zMin = -0.38, zMax = 1.02;
       const pos = [], uvs = [], idx = [];
 
       for (let iz = 0; iz <= segZ; iz++) {
         const tz = iz / segZ;
         const z = zMin + tz * (zMax - zMin);
         const mappedTz = (z + 0.82) / 2.06;
-        const cap = Math.sin(Math.min(1, (1 - tz) * 5.0) * Math.PI * 0.5);
+        const cap = Math.sin(Math.min(1, tz * 5.0) * Math.PI * 0.5) * Math.sin(Math.min(1, (1 - tz) * 5.0) * Math.PI * 0.5);
         const halfW = viperHalfWidthAt(mappedTz) * 0.68 * cap;
 
         for (let ix = 0; ix <= segX; ix++) {
@@ -610,14 +610,14 @@
 
     function createInsetUpperPalateGeometry() {
       const segZ = 18, segX = 14;
-      const zMin = -0.64, zMax = 1.08;
+      const zMin = -0.38, zMax = 1.08;
       const pos = [], uvs = [], idx = [];
 
       for (let iz = 0; iz <= segZ; iz++) {
         const tz = iz / segZ;
         const z = zMin + tz * (zMax - zMin);
         const mappedTz = (z + 0.88) / 2.20;
-        const cap = Math.sin(Math.min(1, (1 - tz) * 5.5) * Math.PI * 0.5);
+        const cap = Math.sin(Math.min(1, tz * 5.0) * Math.PI * 0.5) * Math.sin(Math.min(1, (1 - tz) * 5.5) * Math.PI * 0.5);
         const halfW = viperHalfWidthAt(mappedTz) * 0.72 * cap;
 
         for (let ix = 0; ix <= segX; ix++) {
@@ -1091,7 +1091,7 @@
       tongueGroup.add(forkL, forkR);
 
       // Enclosed Throat + Crimson Mouth Light + Dynamic Jaw-Hinge Membranes
-      const throatGeo = trackGeo(new THREE.CylinderGeometry(0.30, 0.20, 0.96, 14, 1, true));
+      const throatGeo = trackGeo(new THREE.CylinderGeometry(0.24, 0.04, 0.36, 14, 1, false));
       throatGeo.rotateX(Math.PI * 0.5);
       const throatMesh = new THREE.Mesh(
         throatGeo,
@@ -1099,10 +1099,10 @@
           color: 0x4A0A0D,
           emissive: 0x160203,
           roughness: 0.28,
-          side: THREE.BackSide
+          side: THREE.DoubleSide
         }))
       );
-      throatMesh.position.set(0, 0.02, -0.94);
+      throatMesh.position.set(0, 0.02, -0.19);
       headGroup.add(throatMesh);
 
       const throatLight = new THREE.PointLight(0x9E1B22, 0.0, 4.5);

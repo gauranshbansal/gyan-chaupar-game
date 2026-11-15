@@ -2695,14 +2695,14 @@
 
       function createInsetLowerGumGeometry() {
         const segZ = 24, segX = 18;
-        const zMin = -0.62, zMax = 1.04;
+        const zMin = -0.38, zMax = 1.04;
         const positions = [], uvs = [], indices = [];
 
         for (let iz = 0; iz <= segZ; iz++) {
           const tz = iz / segZ;
           const z = zMin + tz * (zMax - zMin);
           const mappedTz = (z + 0.82) / (1.24 + 0.82);
-          const endCap = Math.sin(Math.min(1, (1 - tz) * 5.0) * Math.PI * 0.5);
+          const endCap = Math.sin(Math.min(1, tz * 5.0) * Math.PI * 0.5) * Math.sin(Math.min(1, (1 - tz) * 5.0) * Math.PI * 0.5);
           const halfW = viperHalfWidthAt(mappedTz) * 0.70 * endCap;
 
           for (let ix = 0; ix <= segX; ix++) {
@@ -2735,14 +2735,14 @@
 
       function createInsetUpperPalateGeometry() {
         const segZ = 24, segX = 18;
-        const zMin = -0.64, zMax = 1.10;
+        const zMin = -0.38, zMax = 1.10;
         const positions = [], uvs = [], indices = [];
 
         for (let iz = 0; iz <= segZ; iz++) {
           const tz = iz / segZ;
           const z = zMin + tz * (zMax - zMin);
           const mappedTz = (z + 0.88) / (1.32 + 0.88);
-          const endCap = Math.sin(Math.min(1, (1 - tz) * 5.5) * Math.PI * 0.5);
+          const endCap = Math.sin(Math.min(1, tz * 5.0) * Math.PI * 0.5) * Math.sin(Math.min(1, (1 - tz) * 5.5) * Math.PI * 0.5);
           const halfW = viperHalfWidthAt(mappedTz) * 0.74 * endCap;
 
           for (let ix = 0; ix <= segX; ix++) {
@@ -3041,8 +3041,8 @@
       forkR.rotation.y = -0.28;
       tongueGroup.add(forkR);
 
-      // Deep Throat & Light
-      const throatGeo = new THREE.CylinderGeometry(0.32, 0.22, 1.05, 18, 1, true);
+      // Deep Throat & Light (Enclosed cleanly within the mouth cavity)
+      const throatGeo = new THREE.CylinderGeometry(0.24, 0.04, 0.36, 18, 1, false);
       throatGeo.rotateX(Math.PI / 2);
       const throatMesh = new THREE.Mesh(throatGeo, new THREE.MeshPhysicalMaterial({
         map: mouthTex.map,
@@ -3050,9 +3050,9 @@
         emissive: 0x160202,
         roughness: 0.18,
         clearcoat: 0.85,
-        side: THREE.BackSide
+        side: THREE.DoubleSide
       }));
-      throatMesh.position.set(0, 0.02, -0.96);
+      throatMesh.position.set(0, 0.02, -0.19);
       headGroup.add(throatMesh);
 
       const throatLight = new THREE.PointLight(0xB02A2A, 0.0, 5.0);
@@ -3121,8 +3121,9 @@
       });
 
       const vertCount = (BODY_RINGS + 1) * (BODY_RADIAL + 1);
-      const bPositions = new Float32Array(vertCount * 3);
-      const bUvs = new Float32Array(vertCount * 2);
+      const neckCapIdx = vertCount;
+      const bPositions = new Float32Array((vertCount + 1) * 3);
+      const bUvs = new Float32Array((vertCount + 1) * 2);
       const bIndices = [];
 
       for (let i = 0; i <= BODY_RINGS; i++) {
@@ -3134,6 +3135,8 @@
           bUvs[idx + 1] = v;
         }
       }
+      bUvs[neckCapIdx * 2] = 0.5;
+      bUvs[neckCapIdx * 2 + 1] = 0.0;
 
       for (let i = 0; i < BODY_RINGS; i++) {
         for (let j = 0; j < BODY_RADIAL; j++) {
@@ -3142,6 +3145,11 @@
           bIndices.push(a, b, a + 1);
           bIndices.push(b, b + 1, a + 1);
         }
+      }
+
+      // Fully seal the neck cross-section (ring 0) with solid scaly outer surface
+      for (let j = 0; j < BODY_RADIAL; j++) {
+        bIndices.push(neckCapIdx, j + 1, j);
       }
 
       const bodyGeo = new THREE.BufferGeometry();
@@ -3159,7 +3167,7 @@
 
       function updateContinuousBody(time, coilTension) {
         headGroup.updateMatrixWorld(true);
-        _neckSocket.set(0, 0.03, -0.62).applyMatrix4(headGroup.matrixWorld);
+        _neckSocket.set(0, 0.025, -0.52).applyMatrix4(headGroup.matrixWorld);
         _neckDir.set(0, 0, -1).transformDirection(headGroup.matrixWorld).normalize();
 
         const bodyLen = 15.0;
@@ -3191,7 +3199,7 @@
 
           let radius = 0.44;
           if (t < 0.08) {
-            radius = THREE.MathUtils.lerp(0.46, 0.41, t / 0.08);
+            radius = THREE.MathUtils.lerp(0.48, 0.41, t / 0.08);
           } else {
             const u = (t - 0.08) / 0.92;
             radius = 0.41 + Math.sin(u * Math.PI * 0.88) * 0.30 - u * 0.14;
@@ -3219,6 +3227,7 @@
             );
           }
         }
+        pos.setXYZ(neckCapIdx, _spinePts[0].x, _spinePts[0].y, _spinePts[0].z);
         pos.needsUpdate = true;
         bodyGeo.computeVertexNormals();
       }
