@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <meta name="theme-color" content="#090705">
   <meta name="description" content="Gyan Chaupar (Moksha Patam) — The original 72-square board game of karma and liberation. Reconstructed and packaged as an offline Android APK by Gauransh Bansal.">
   <title>GYAN CHAUPAR — Moksha Patam | Official Android APK</title>
@@ -3122,8 +3125,9 @@
 
       const vertCount = (BODY_RINGS + 1) * (BODY_RADIAL + 1);
       const neckCapIdx = vertCount;
-      const bPositions = new Float32Array((vertCount + 1) * 3);
-      const bUvs = new Float32Array((vertCount + 1) * 2);
+      const tailCapIdx = vertCount + 1;
+      const bPositions = new Float32Array((vertCount + 2) * 3);
+      const bUvs = new Float32Array((vertCount + 2) * 2);
       const bIndices = [];
 
       for (let i = 0; i <= BODY_RINGS; i++) {
@@ -3137,6 +3141,8 @@
       }
       bUvs[neckCapIdx * 2] = 0.5;
       bUvs[neckCapIdx * 2 + 1] = 0.0;
+      bUvs[tailCapIdx * 2] = 0.5;
+      bUvs[tailCapIdx * 2 + 1] = 1.0;
 
       for (let i = 0; i < BODY_RINGS; i++) {
         for (let j = 0; j < BODY_RADIAL; j++) {
@@ -3147,9 +3153,15 @@
         }
       }
 
-      // Fully seal the neck cross-section (ring 0) with solid scaly outer surface
+      // Fully seal the neck cross-section (ring 0) facing forward (+Z towards skull)
       for (let j = 0; j < BODY_RADIAL; j++) {
-        bIndices.push(neckCapIdx, j, j + 1);
+        bIndices.push(neckCapIdx, j + 1, j);
+      }
+
+      // Fully seal the tail tip cross-section (ring BODY_RINGS) facing backward (-Z)
+      const tailBase = BODY_RINGS * (BODY_RADIAL + 1);
+      for (let j = 0; j < BODY_RADIAL; j++) {
+        bIndices.push(tailCapIdx, tailBase + j, tailBase + j + 1);
       }
 
       const bodyGeo = new THREE.BufferGeometry();
@@ -3200,9 +3212,12 @@
           let radius = 0.44;
           if (t < 0.08) {
             radius = THREE.MathUtils.lerp(0.48, 0.41, t / 0.08);
+          } else if (t < 0.65) {
+            const u = (t - 0.08) / 0.57;
+            radius = 0.41 + Math.sin(u * Math.PI) * 0.16;
           } else {
-            const u = (t - 0.08) / 0.92;
-            radius = 0.41 + Math.sin(u * Math.PI * 0.88) * 0.30 - u * 0.14;
+            const u = (t - 0.65) / 0.35;
+            radius = THREE.MathUtils.lerp(0.41, 0.025, Math.pow(u, 0.85));
           }
 
           radius *= (1.0 + Math.sin(time * 2.4 - t * 3.0) * 0.032);
@@ -3228,6 +3243,7 @@
           }
         }
         pos.setXYZ(neckCapIdx, _spinePts[0].x, _spinePts[0].y, _spinePts[0].z);
+        pos.setXYZ(tailCapIdx, _spinePts[BODY_RINGS].x, _spinePts[BODY_RINGS].y, _spinePts[BODY_RINGS].z);
         pos.needsUpdate = true;
         bodyGeo.computeVertexNormals();
       }
