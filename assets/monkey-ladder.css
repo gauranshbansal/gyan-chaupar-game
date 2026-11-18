@@ -1,0 +1,32 @@
+/* Full-bleed ornament, kept in the page just above Visual Showcase. */
+.monkey-ladder {
+  position: relative;
+  width: 100vw;
+  margin: 22px 0 -38px calc(50% - 50vw);
+  height: 144px;
+  overflow: hidden;
+  pointer-events: none;
+  contain: layout paint;
+}
+
+.monkey-ladder-rails {
+  position: absolute;
+  inset: 23px 0 auto;
+  height: 15px;
+  border-top: 1px solid #c8a45b;
+  border-bottom: 1px solid #c8a45b;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 20px, #b68e46 20px 22px, transparent 22px 42px),
+    linear-gradient(180deg, #d4af3708, #d4af3714);
+  box-shadow: 0 -1px 0 #fae8b819, 0 1px 0 #382411, 0 0 12px #d4af3710;
+}
+
+.monkey-ladder-scene {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 144px;
+  overflow: visible;
+  filter: drop-shadow(0 3px 4px #0008);
+}

@@ -12,7 +12,8 @@
 <p align="center">
   <a href="https://github.com/gauranshbansal/gyan-chaupar-game/raw/main/assets/Gyan-Chaupar.apk"><img src="https://img.shields.io/badge/Download-APK%20(22.12%20MB)-gold.svg?style=flat-square" alt="Download APK"></a>
   <img src="https://img.shields.io/badge/Platform-Android%208.0%2B-green.svg?style=flat-square" alt="Android Platform">
-  <img src="https://img.shields.io/badge/Release-v1.4-blue.svg?style=flat-square" alt="v1.4">
+  <img src="https://img.shields.io/badge/Website-v1.8-blue.svg?style=flat-square" alt="Website v1.8">
+  <img src="https://img.shields.io/badge/APK-v1.4-blue.svg?style=flat-square" alt="APK v1.4">
   <img src="https://img.shields.io/badge/Privacy-100%25%20Offline%20%26%20No%20Ads-purple.svg?style=flat-square" alt="Offline & No Ads">
   <img src="https://img.shields.io/badge/License-MIT-amber.svg?style=flat-square" alt="MIT License">
 </p>
@@ -27,6 +28,8 @@
 ---
 
 ## 🌿 How This Was Built (The Honest Story)
+
+Website version **1.8** adds the golden monkey-bar animation with mirrored return crossings, the interactive four-guardian explorer with compact icon controls and richer materials, and the recessed Sarpa Dansha stage. The downloadable Android APK remains version **1.4**.
 
 The spark was simple: I was scrolling Instagram and stumbled across [this reel](https://www.instagram.com/reel/Dey_O80MbTK/?rpxt=aWE1OXh1eWFpcG1r) explaining how *Snakes and Ladders* was originally a deeply philosophical 72-square Vedic/Jain game called **Gyan Chaupar (Moksha Patam)**. The history fascinated me, and my immediate reaction was: *let's actually make this real*.
 

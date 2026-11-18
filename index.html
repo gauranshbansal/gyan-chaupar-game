@@ -7,6 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   <meta name="theme-color" content="#090705">
+  <meta name="version" content="1.8">
   <meta name="description" content="Gyan Chaupar (Moksha Patam) — The original 72-square board game of karma and liberation. Reconstructed and packaged as an offline Android APK by Gauransh Bansal.">
   <title>GYAN CHAUPAR — Moksha Patam | Official Android APK</title>
 
@@ -15,6 +16,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Yatra+One&family=Playfair+Display:ital,wght@0,500;1,400&display=swap" rel="stylesheet">
   <script src="assets/three.min.js"></script>
+  <link rel="stylesheet" href="assets/monkey-ladder.css">
 
   <style>
     /* ==========================================================================
@@ -1046,42 +1048,241 @@
     }
 
     /* ==========================================================================
-       FOUR GUARDIANS (YAKSHA PANTHEON)
+       FOUR GUARDIANS · 3D TOKEN EXPLORER & YAKSHA PANTHEON
        ========================================================================== */
+    .token-explorer-container {
+      margin-bottom: 50px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .token-viewport {
+      position: relative;
+      width: 100%;
+      height: 480px;
+      border: 1px solid var(--line);
+      background: radial-gradient(circle at 50% 40%, rgba(30, 22, 14, 0.45) 0%, rgba(10, 8, 6, 0.95) 80%);
+      border-radius: 4px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+      user-select: none;
+      -webkit-user-select: none;
+      cursor: grab;
+      touch-action: none;
+    }
+
+    .token-viewport:active {
+      cursor: grabbing;
+    }
+
+    #tokenCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      background: transparent;
+    }
+
+    .token-hud-header {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      right: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      pointer-events: none;
+      z-index: 15;
+    }
+
+    .token-hud-tag {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(15, 11, 8, 0.88);
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1px solid var(--line);
+      backdrop-filter: blur(8px);
+      pointer-events: auto;
+    }
+
+    .token-indicator-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #f59e0b;
+      box-shadow: 0 0 10px #f59e0b;
+      transition: background 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .token-tag-text {
+      font-family: var(--font-display);
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      color: var(--gold-bright);
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .token-mode-pills {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      pointer-events: auto;
+      background: rgba(15, 11, 8, 0.88);
+      padding: 4px;
+      border-radius: 24px;
+      border: 1px solid var(--line);
+      backdrop-filter: blur(8px);
+    }
+
+    .token-mode-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--dim);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.10em;
+      padding: 6px 12px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      white-space: nowrap;
+    }
+
+    .token-mode-btn:hover {
+      color: var(--gold-bright);
+      border-color: rgba(212, 175, 55, 0.3);
+    }
+
+    .token-mode-btn.active {
+      background: rgba(212, 175, 55, 0.18);
+      color: var(--gold-bright);
+      border-color: var(--gold);
+      box-shadow: 0 0 12px rgba(212, 175, 55, 0.25);
+    }
+
+    .token-controls-bar {
+      position: absolute;
+      bottom: 34px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(15, 11, 8, 0.90);
+      border: 1px solid var(--line-bright);
+      padding: 6px 14px;
+      border-radius: 30px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+      z-index: 15;
+    }
+
+    .token-ctrl-btn {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--line);
+      color: var(--dim);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      padding: 6px 12px;
+      border-radius: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .token-ctrl-btn:hover {
+      color: var(--gold-bright);
+      border-color: var(--gold);
+      background: rgba(212, 175, 55, 0.12);
+    }
+
+    .token-ctrl-btn.active {
+      background: rgba(212, 175, 55, 0.22);
+      color: var(--gold-bright);
+      border-color: var(--gold);
+      box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+    }
+
+    .token-btn-icon {
+      font-size: 12px;
+      color: var(--gold);
+    }
+
+    .token-hint-text {
+      position: absolute;
+      bottom: 10px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: rgba(163, 149, 130, 0.6);
+      pointer-events: none;
+      z-index: 10;
+    }
+
     .yakshas-row {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 18px;
-      margin-bottom: 50px;
+      gap: 16px;
     }
 
     .yaksha-mini {
       border: 1px solid var(--line);
       background: var(--card);
-      padding: 24px 18px;
+      padding: 18px 14px;
       text-align: center;
-      transition: transform 0.3s ease, border-color 0.3s ease;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
       position: relative;
+      cursor: pointer;
+      border-radius: 4px;
     }
 
     .yaksha-mini:hover {
       transform: translateY(-4px);
       border-color: var(--gold);
+      background: var(--card-elevated);
+    }
+
+    .yaksha-mini.active {
+      border-color: var(--gold);
+      background: rgba(212, 175, 55, 0.08);
+      box-shadow: 0 0 24px rgba(212, 175, 55, 0.18), inset 0 0 14px rgba(212, 175, 55, 0.08);
+      transform: translateY(-2px);
     }
 
     .yaksha-glyph {
       font-family: var(--font-sanskrit);
       font-size: 32px;
       color: var(--gold);
-      margin-bottom: 10px;
+      margin-bottom: 8px;
       line-height: 1;
+      transition: transform 0.3s ease;
+    }
+
+    .yaksha-mini.active .yaksha-glyph {
+      transform: scale(1.15);
+      color: var(--gold-bright);
+      text-shadow: 0 0 14px rgba(245, 207, 130, 0.5);
     }
 
     .yaksha-name {
       font-family: var(--font-display);
-      font-size: 15px;
+      font-size: 14px;
       color: var(--gold-bright);
       letter-spacing: 0.12em;
+      font-weight: 700;
     }
 
     .yaksha-role {
@@ -1089,7 +1290,29 @@
       color: var(--dim);
       text-transform: uppercase;
       letter-spacing: 0.14em;
-      margin-top: 6px;
+      margin-top: 4px;
+    }
+
+    .yaksha-badge {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-top: 8px;
+      padding: 3px 8px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.04);
+      display: inline-block;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    @media (max-width: 768px) {
+      .token-viewport { height: 380px; }
+      .token-hud-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+      .token-mode-pills { width: 100%; justify-content: center; }
+      .token-mode-btn { font-size: 9px; padding: 4px 8px; }
+      .token-controls-bar { width: 92%; justify-content: center; bottom: 28px; }
+      .token-ctrl-btn { font-size: 9px; padding: 5px 8px; }
     }
 
     /* ==========================================================================
@@ -1430,6 +1653,7 @@
       .comparison-container { height: 320px; }
     }
   </style>
+  <link rel="stylesheet" href="assets/explorer-polish.css">
 </head>
 <body>
 
@@ -1498,7 +1722,7 @@
           </div>
 
           <div class="specs-pill-bar">
-            <span><strong>v1.4</strong> BUILD</span>
+            <span><strong>v1.8</strong> WEBSITE</span>
             <span>·</span>
             <span><strong>ANDROID 8.0+</strong></span>
             <span>·</span>
@@ -1531,6 +1755,12 @@
         </div>
       </div>
     </section>
+
+    <!-- A quiet, full-width golden ladder and its playful little pilgrim. -->
+    <div class="monkey-ladder" aria-hidden="true">
+      <div class="monkey-ladder-rails"></div>
+      <svg class="monkey-ladder-scene" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
 
     <!-- SECTION 1: VISUALS (INTERACTIVE GALLERY FILMSTRIP) -->
     <section class="fade-in-section" id="visuals">
@@ -1643,17 +1873,11 @@
 
       <div class="serpent-wrapper">
         <div class="serpent-viewport" id="serpentContainer">
+          <div class="serpent-depth-stage" aria-hidden="true"><div class="serpent-depth-floor"></div></div>
+          <div class="serpent-contact-shadow" aria-hidden="true"></div>
           <canvas id="serpentCanvas"></canvas>
           <div id="serpentBiteOverlay"></div>
           <div id="serpentBlackoutOverlay"></div>
-
-          <!-- Minimalist In-Section Header Badge -->
-          <div class="serpent-hud-header">
-            <div class="serpent-hud-tag">
-              <span class="serpent-indicator-dot"></span>
-              <span class="serpent-tag-text">SARPA DANSHA · PIT-VIPER</span>
-            </div>
-          </div>
 
           <!-- Inspect Mode Jaw Gape Slider Panel -->
           <div id="serpentInspectPanel" class="serpent-inspect-panel">
@@ -1677,33 +1901,67 @@
       </div>
     </section>
 
-    <!-- SECTION 3: THE FOUR GUARDIANS -->
+    <!-- SECTION 3: THE FOUR GUARDIANS · 3D EXPLORER -->
     <section class="fade-in-section" id="guardians">
       <div class="section-title">
         The 4 Guardians
-        <span class="sub">[Yaksha Archetypes]</span>
+        <span class="sub">[Yaksha Archetypes · 3D Interactive Explorer]</span>
       </div>
 
-      <div class="yakshas-row">
-        <div class="yaksha-mini">
-          <div class="yaksha-glyph">कु</div>
-          <div class="yaksha-name">KUBERA</div>
-          <div class="yaksha-role">True Wealth</div>
+      <!-- 3D Token Interactive Viewport -->
+      <div class="token-explorer-container">
+        <div class="token-viewport" id="tokenViewport">
+          <canvas id="tokenCanvas" role="img" aria-label="Interactive 3D Kubera guardian figurine"></canvas>
+          <img id="tokenFallback" src="assets/token_stills/token_kubera_front_color_2048px.png" alt="Kubera guardian figurine" style="position:absolute;inset:12% 25%;width:50%;height:70%;object-fit:contain;pointer-events:none;" />
+          <p id="tokenStatus" role="status" hidden style="position:absolute;bottom:110px;left:20px;right:20px;text-align:center;color:var(--gold-bright);font-size:11px;"></p>
+
+          <!-- Top HUD Header -->
+          <div class="token-hud-header">
+            <div class="token-hud-tag">
+              <span class="token-indicator-dot" id="tokenDot"></span>
+              <span class="token-tag-text" id="tokenTagText">KUBERA · SOVEREIGN GOLD</span>
+            </div>
+
+            <div class="token-tools" role="group" aria-label="3D viewer controls">
+              <button class="token-icon-btn" id="tokenModeWire" title="Show mesh" aria-label="Show mesh" aria-pressed="false">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Zm0 0v9m8-4.5L12 12 4 7.5m8 4.5v9M4 16.5l8-13 8 13M4 7.5l8 13 8-13"/></svg>
+              </button>
+              <button class="token-icon-btn" id="tokenBtnExplode" title="Separate anatomy" aria-label="Separate anatomy" aria-pressed="false">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 9 4 4m0 4V4h4m7 5 5-5m-4 0h4v4M9 15l-5 5m4 0H4v-4m11-1 5 5m0-4v4h-4"/><path d="m12 8 4 4-4 4-4-4 4-4Z"/></svg>
+              </button>
+              <button class="token-icon-btn active" id="tokenBtnAutoSpin" title="Pause auto orbit" aria-label="Pause auto orbit" aria-pressed="true">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M4.1 9A8.4 8.4 0 0 1 19 6l1 3m0-5v5h-5M19.9 15A8.4 8.4 0 0 1 5 18l-1-3m0 5v-5h5"/></svg>
+              </button>
+            </div>
+          </div>
         </div>
-        <div class="yaksha-mini">
-          <div class="yaksha-glyph">शं</div>
-          <div class="yaksha-name">ŚAṄKHA</div>
-          <div class="yaksha-role">Resonance</div>
-        </div>
-        <div class="yaksha-mini">
-          <div class="yaksha-glyph">प</div>
-          <div class="yaksha-name">PADMA</div>
-          <div class="yaksha-role">Lotus Purity</div>
-        </div>
-        <div class="yaksha-mini">
-          <div class="yaksha-glyph">गु</div>
-          <div class="yaksha-name">GUHYAKA</div>
-          <div class="yaksha-role">Hidden Ways</div>
+
+        <!-- 4 Yaksha Interactive Selector Cards -->
+        <div class="yakshas-row">
+          <div class="yaksha-mini active" data-yaksha="0" id="yakshaCard0">
+            <div class="yaksha-glyph">कु</div>
+            <div class="yaksha-name">KUBERA</div>
+            <div class="yaksha-role">True Wealth</div>
+            <div class="yaksha-badge" style="color: #f59e0b;">Sovereign Gold</div>
+          </div>
+          <div class="yaksha-mini" data-yaksha="1" id="yakshaCard1">
+            <div class="yaksha-glyph">शं</div>
+            <div class="yaksha-name">ŚAṄKHA</div>
+            <div class="yaksha-role">Resonance</div>
+            <div class="yaksha-badge" style="color: #14b8a6;">Sacred Teal</div>
+          </div>
+          <div class="yaksha-mini" data-yaksha="2" id="yakshaCard2">
+            <div class="yaksha-glyph">प</div>
+            <div class="yaksha-name">PADMA</div>
+            <div class="yaksha-role">Lotus Purity</div>
+            <div class="yaksha-badge" style="color: #ef4444;">Solar Crimson</div>
+          </div>
+          <div class="yaksha-mini" data-yaksha="3" id="yakshaCard3">
+            <div class="yaksha-glyph">गु</div>
+            <div class="yaksha-name">GUHYAKA</div>
+            <div class="yaksha-role">Hidden Ways</div>
+            <div class="yaksha-badge" style="color: #e2e8f0;">Astral Silver</div>
+          </div>
         </div>
       </div>
     </section>
@@ -1779,7 +2037,7 @@
         <span style="font-family: var(--font-sanskrit); font-size: 18px; color: var(--gold);">ज्ञ</span>
         <div>
           <div class="sticky-title">GYAN CHAUPAR</div>
-          <div class="sticky-meta">v1.4 · 22.1 MB · Android APK · Offline</div>
+          <div class="sticky-meta">Website v1.8 · APK v1.4 · 22.1 MB · Offline</div>
         </div>
       </div>
 
@@ -3620,6 +3878,8 @@
           camera.lookAt(attackLookAt);
         }
 
+        container.style.setProperty('--snake-shadow-x', `${mouse.x * 25}px`);
+        container.style.setProperty('--snake-shadow-scale', String(0.85 + Math.max(0, targetZ + 1.05) * 0.25));
         renderer.render(scene, camera);
       }
 
@@ -3634,5 +3894,9 @@
 
   <!-- Opening Cinematic Serpent Strike Transition -->
   <script src="assets/serpent-transition.js"></script>
+  <script src="assets/monkey-ladder.js"></script>
+  <script src="assets/OrbitControls.js"></script>
+  <script src="assets/guardian-models.js"></script>
+  <script src="assets/guardians.js"></script>
 </body>
 </html>
