@@ -6,6 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
+  actions: read
   contents: read
   pages: write
   id-token: write
@@ -16,6 +17,8 @@ concurrency:
 
 jobs:
   deploy:
+    env:
+      PAGES_ARTIFACT_NAME: github-pages-${{ github.run_id }}-${{ github.run_attempt }}
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -36,8 +39,31 @@ jobs:
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
         with:
+          name: ${{ env.PAGES_ARTIFACT_NAME }}
           path: '_site'
+
+      - name: Wait for Pages Artifact
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const expected = process.env.PAGES_ARTIFACT_NAME;
+            for (let attempt = 0; attempt < 12; attempt++) {
+              const artifacts = await github.paginate(github.rest.actions.listWorkflowRunArtifacts, {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                run_id: context.runId,
+                per_page: 100
+              });
+              if (artifacts.some(artifact => artifact.name === expected && !artifact.expired)) {
+                core.info(`Pages artifact is available: ${expected}`);
+                return;
+              }
+              await new Promise(resolve => setTimeout(resolve, 5000));
+            }
+            core.setFailed(`Pages artifact did not become available: ${expected}`);
 
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+        with:
+          artifact_name: ${{ env.PAGES_ARTIFACT_NAME }}
