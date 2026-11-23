@@ -4,10 +4,12 @@
   width: 100vw;
   margin: 22px 0 -38px calc(50% - 50vw);
   height: 144px;
-  overflow: hidden;
+  overflow: visible;
   pointer-events: none;
-  contain: layout paint;
+  contain: layout;
+  z-index: 3;
 }
+.monkey-ladder.is-reacting { z-index: 25; }
 
 .monkey-ladder-rails {
   position: absolute;
@@ -29,4 +31,36 @@
   height: 144px;
   overflow: visible;
   filter: drop-shadow(0 3px 4px #0008);
+}
+
+.monkey-hit-target {
+  position: absolute; left: 0; top: 32px; width: 80px; height: 100px;
+  border: 0; border-radius: 42%; padding: 0; background: transparent;
+  pointer-events: auto; cursor: pointer; -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.monkey-hit-target:focus-visible {
+  outline: 1px solid #e6c98f; outline-offset: 3px;
+  box-shadow: 0 0 20px #d4af3726;
+}
+.monkey-hit-target:disabled { pointer-events: none; cursor: default; }
+.monkey-ladder.is-hovered [data-monkey] { filter: drop-shadow(0 0 4px #e9c77d66); }
+.monkey-ladder.is-reviving [data-monkey] { filter: drop-shadow(0 0 8px #f8e7acb3); }
+[data-soul] { filter: drop-shadow(0 0 7px #f9e6aca6); }
+.monkey-status {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip-path: inset(50%); white-space: nowrap;
+}
+
+/* Give the creator's name the same care as the masthead. */
+#floatingNav { top: 106px; }
+header.site-header { flex-wrap: wrap; gap: 16px; }
+header.site-header .creator-tag { flex-direction: column; align-items: flex-end; gap: 5px; }
+header.site-header .creator-tag > span { font-size: 8px; letter-spacing: .24em; color: #a19178; }
+header.site-header .creator-tag a {
+  font-family: var(--font-display); font-size: clamp(14px, 1.45vw, 18px);
+  font-weight: 700; color: var(--gold-bright); letter-spacing: .09em;
+}
+@media (max-width: 600px) {
+  header.site-header .creator-tag { width: 100%; padding-left: 32px; align-items: flex-start; }
 }
