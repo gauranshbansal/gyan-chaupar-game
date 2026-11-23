@@ -16,6 +16,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Yatra+One&family=Playfair+Display:ital,wght@0,500;1,400&display=swap" rel="stylesheet">
   <script src="assets/three.min.js"></script>
+  <script src="assets/serpent-mouth.js"></script>
   <link rel="stylesheet" href="assets/monkey-ladder.css">
 
   <style>
@@ -3273,44 +3274,15 @@
         }
       });
 
-      // Forked Tongue
+      // Continuous forked tongue, anchored below the lower gum line.
       const tongueGroup = new THREE.Group();
-      tongueGroup.position.set(0, 0.005, 0.28);
+      tongueGroup.position.set(0, -0.015, -0.10);
       lowerLocal.add(tongueGroup);
+      tongueGroup.add(window.GyanSerpentMouth.createTongue());
 
-      const tongueMat = new THREE.MeshPhysicalMaterial({ color: 0xB02A2A, emissive: 0x300606, roughness: 0.16, clearcoat: 0.9 });
-      const stemGeo = new THREE.CylinderGeometry(0.016, 0.030, 0.95, 10);
-      stemGeo.rotateX(Math.PI / 2);
-      stemGeo.translate(0, 0, 0.475);
-      tongueGroup.add(new THREE.Mesh(stemGeo, tongueMat));
-
-      const forkGeo = new THREE.ConeGeometry(0.016, 0.30, 8);
-      forkGeo.rotateX(Math.PI / 2);
-      forkGeo.translate(0, 0, 0.15);
-
-      const forkL = new THREE.Mesh(forkGeo, tongueMat);
-      forkL.position.set(0, 0, 0.94);
-      forkL.rotation.y = 0.28;
-      tongueGroup.add(forkL);
-
-      const forkR = new THREE.Mesh(forkGeo, tongueMat);
-      forkR.position.set(0, 0, 0.94);
-      forkR.rotation.y = -0.28;
-      tongueGroup.add(forkR);
-
-      // Deep Throat & Light (Enclosed cleanly within the mouth cavity)
-      const throatGeo = new THREE.CylinderGeometry(0.24, 0.04, 0.36, 18, 1, false);
-      throatGeo.rotateX(Math.PI / 2);
-      const throatMesh = new THREE.Mesh(throatGeo, new THREE.MeshPhysicalMaterial({
-        map: mouthTex.map,
-        color: 0x4E0B0B,
-        emissive: 0x160202,
-        roughness: 0.18,
-        clearcoat: 0.85,
-        side: THREE.DoubleSide
-      }));
-      throatMesh.position.set(0, 0.02, -0.19);
-      headGroup.add(throatMesh);
+      // Open, recessed walls follow both jaws instead of exposing a cone cap.
+      const throat = window.GyanSerpentMouth.createThroat(mouthTex.bumpMap, HINGE_Z);
+      headGroup.add(throat.group);
 
       const throatLight = new THREE.PointLight(0xB02A2A, 0.0, 5.0);
       throatLight.position.set(0, 0.02, -0.25);
@@ -3739,7 +3711,10 @@
           headYaw = 0.0;
           headRoll = 0.0;
           coilTension = 0.85;
-          tongueGroup.visible = false;
+          tongueGroup.visible = jawOpen > 0.12;
+          tongueGroup.position.z = -0.10;
+          tongueGroup.scale.z = 0.72;
+          tongueGroup.rotation.x = 0;
         } else if (currentState === STATE.STALK) {
           jawOpen = 0.0;
           fangExtend = 0.0;
@@ -3747,11 +3722,13 @@
           const flickCycle = totalTime % 3.1;
           if (flickCycle > 0.6 && flickCycle < 1.08) {
             const f = Math.sin(((flickCycle - 0.6) / 0.48) * Math.PI);
-            tongueGroup.position.z = 0.28 + f * 0.88;
+            tongueGroup.position.z = -0.10;
+            tongueGroup.scale.z = 0.72 + f * 1.13;
             tongueGroup.rotation.x = Math.sin(totalTime * 42) * 0.20 * f;
             tongueGroup.visible = true;
           } else {
-            tongueGroup.position.z = 0.18;
+            tongueGroup.position.z = -0.10;
+            tongueGroup.scale.z = 0.72;
             tongueGroup.visible = false;
           }
         } else if (currentState === STATE.WINDUP) {
@@ -3835,6 +3812,7 @@
         const lowerRotX = jawOpen * 0.82;
         upperJawGroup.rotation.x = upperRotX;
         lowerJawGroup.rotation.x = lowerRotX;
+        throat.update(upperRotX, lowerRotX);
 
         const fangAngle = THREE.MathUtils.lerp(-1.35, 0.16, fangExtend);
         fangLeftPivot.rotation.x = fangAngle;
