@@ -4,27 +4,73 @@
   const THREE = window.THREE;
   if (!THREE) return;
 
+  function tongueTextures() {
+    const color = document.createElement('canvas'), bump = document.createElement('canvas');
+    color.width = bump.width = 128; color.height = bump.height = 512;
+    const c = color.getContext('2d'), b = bump.getContext('2d');
+    const gradient = c.createLinearGradient(0, 0, 128, 0);
+    gradient.addColorStop(0, '#460d09'); gradient.addColorStop(.45, '#8e251e');
+    gradient.addColorStop(.58, '#842018'); gradient.addColorStop(1, '#4a100a');
+    c.fillStyle = gradient; c.fillRect(0, 0, 128, 512);
+    b.fillStyle = '#808080'; b.fillRect(0, 0, 128, 512);
+    let seed = 37;
+    const random = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
+    for (let i = 0; i < 2600; i++) {
+      const x = random() * 128, y = random() * 512, r = .3 + random() * .75;
+      c.fillStyle = i % 2 ? '#d69b6633' : '#310b0633';
+      c.beginPath(); c.ellipse(x, y, r, r * 1.7, 0, 0, Math.PI * 2); c.fill();
+      b.fillStyle = i % 2 ? '#999999' : '#6a6a6a';
+      b.beginPath(); b.ellipse(x, y, r, r * 1.7, 0, 0, Math.PI * 2); b.fill();
+    }
+    for (let i = 0; i < 18; i++) {
+      c.beginPath(); c.moveTo(i * 7, 0);
+      c.bezierCurveTo(i * 7 + 2, 150, i * 7 - 3, 350, i * 7 + 1, 512);
+      c.strokeStyle = '#e8b27b19'; c.lineWidth = .6; c.stroke();
+    }
+    const map = new THREE.CanvasTexture(color), bumpMap = new THREE.CanvasTexture(bump);
+    map.anisotropy = bumpMap.anisotropy = 4;
+    return { map, bumpMap };
+  }
+
   function createTongue() {
     // One continuous, thin Y-shaped ribbon; no cylinder caps or separate cones.
     const outline = new THREE.Shape();
-    outline.moveTo(-.025, -.42);
-    outline.bezierCurveTo(-.030, .20, -.025, .58, -.022, .78);
+    outline.moveTo(-.033, -.42);
+    outline.bezierCurveTo(-.038, .20, -.032, .58, -.028, .78);
     outline.bezierCurveTo(-.045, .98, -.090, 1.16, -.110, 1.30);
     outline.bezierCurveTo(-.112, 1.31, -.105, 1.31, -.100, 1.30);
     outline.bezierCurveTo(-.066, 1.16, -.025, 1.04, 0, .92);
     outline.bezierCurveTo(.025, 1.04, .066, 1.16, .100, 1.30);
     outline.bezierCurveTo(.105, 1.31, .112, 1.31, .110, 1.30);
-    outline.bezierCurveTo(.090, 1.16, .045, .98, .022, .78);
-    outline.bezierCurveTo(.025, .58, .030, .20, .025, -.42);
+    outline.bezierCurveTo(.090, 1.16, .045, .98, .028, .78);
+    outline.bezierCurveTo(.032, .58, .038, .20, .033, -.42);
     outline.closePath();
     const geometry = new THREE.ExtrudeGeometry(outline, {
-      depth: .008, steps: 1, curveSegments: 16,
+      depth: .010, steps: 1, curveSegments: 32,
       bevelEnabled: true, bevelSize: .0015, bevelThickness: .0015, bevelSegments: 2
     });
     geometry.rotateX(Math.PI / 2);
     geometry.translate(0, .004, 0);
+    const positions = geometry.attributes.position, uv = geometry.attributes.uv;
+    const shades = new Float32Array(positions.count * 3);
+    for (let i = 0; i < positions.count; i++) {
+      const x = positions.getX(i), z = positions.getZ(i);
+      const t = Math.max(0, Math.min(1, (z + .42) / 1.73));
+      const sway = .035 * Math.sin(t * Math.PI * 2) * Math.sin(t * Math.PI);
+      const arch = .024 * Math.sin(t * Math.PI) * (1 + Math.cos(t * Math.PI));
+      positions.setXYZ(i, x + sway, positions.getY(i) + arch, z);
+      uv.setXY(i, Math.max(0, Math.min(1, .5 + x / .24)), t);
+      const shade = .72 + .28 * (1 - Math.min(1, Math.abs(x) / (z < .78 ? .035 : .12)));
+      shades.set([shade, shade, shade], i * 3);
+    }
+    geometry.setAttribute('color', new THREE.BufferAttribute(shades, 3));
     geometry.computeVertexNormals();
-    const mesh = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ color: 0x46101c }));
+    const texture = tongueTextures();
+    const mesh = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({
+      // Pigment and fine grain remain visible instead of clipping to orange
+      // under the close inspection lights. Curved geometry supplies the depth.
+      color: 0xbf7b6c, map: texture.map, vertexColors: true
+    }));
     mesh.name = 'Sarpa continuous forked tongue';
     return mesh;
   }
@@ -38,7 +84,7 @@
     const colors = new Float32Array(positions.length);
     const uvs = new Float32Array((rows + 1) * (sides + 1) * 2);
     const indices = [];
-    const front = new THREE.Color(0x6b2831), back = new THREE.Color(0x170407);
+    const front = new THREE.Color(0x7e3025), back = new THREE.Color(0x1e0603);
     for (let row = 0; row <= rows; row++) {
       const depth = row <= roofRows ? row / roofRows
         : row <= roofRows + backRows ? 1 : 1 - (row - roofRows - backRows) / floorRows;

@@ -2719,10 +2719,10 @@
 
         const irisR = c * 0.86;
         const irisGrad = ctx.createRadialGradient(c, c, irisR * 0.08, c, c, irisR);
-        irisGrad.addColorStop(0.0, '#FFF5D1');
-        irisGrad.addColorStop(0.28, '#F2D28B');
-        irisGrad.addColorStop(0.58, '#D99B38');
-        irisGrad.addColorStop(0.82, '#9E4C1B');
+        irisGrad.addColorStop(0.0, '#B08A45');
+        irisGrad.addColorStop(0.28, '#B48B3B');
+        irisGrad.addColorStop(0.58, '#96732F');
+        irisGrad.addColorStop(0.82, '#62451F');
         irisGrad.addColorStop(0.94, '#3D120A');
         irisGrad.addColorStop(1.0, '#0C0503');
 
@@ -2738,7 +2738,7 @@
           ctx.beginPath();
           ctx.moveTo(c + Math.cos(angle) * rInner, c + Math.sin(angle) * rInner);
           ctx.lineTo(c + Math.cos(angle) * rOuter, c + Math.sin(angle) * rOuter);
-          ctx.strokeStyle = (i % 3 === 0) ? 'rgba(255, 244, 200, 0.42)' : (i % 2 === 0 ? 'rgba(139, 30, 30, 0.34)' : 'rgba(60, 20, 8, 0.45)');
+          ctx.strokeStyle = (i % 3 === 0) ? 'rgba(220, 186, 110, 0.18)' : (i % 2 === 0 ? 'rgba(139, 30, 30, 0.34)' : 'rgba(60, 20, 8, 0.45)');
           ctx.lineWidth = 1.2 + Math.random() * 1.8;
           ctx.stroke();
         }
@@ -2752,7 +2752,7 @@
         ctx.save();
         ctx.beginPath();
         const pupilH = irisR * 0.86;
-        const pupilW = irisR * 0.145;
+        const pupilW = irisR * 0.24;
         ctx.moveTo(c, c - pupilH);
         ctx.quadraticCurveTo(c + pupilW, c, c, c + pupilH);
         ctx.quadraticCurveTo(c - pupilW, c, c, c - pupilH);
@@ -2760,8 +2760,8 @@
         ctx.fillStyle = '#030202';
         ctx.fill();
 
-        ctx.strokeStyle = 'rgba(255, 240, 195, 0.72)';
-        ctx.lineWidth = 2.2;
+        ctx.strokeStyle = '#140e07';
+        ctx.lineWidth = 1.2;
         ctx.stroke();
         ctx.restore();
 
@@ -2804,9 +2804,12 @@
         for (let iz = 0; iz <= segZ; iz++) {
           const tz = iz / segZ;
           const z = zMin + tz * (zMax - zMin);
-          const endCap = Math.sin(Math.min(1, tz * 6.5) * Math.PI * 0.5) * Math.sin(Math.min(1, (1 - tz) * 7.5) * Math.PI * 0.5);
-          const halfW = viperHalfWidthAt(tz) * endCap;
-          const crownH = (0.48 * (1.0 - tz * 0.36) + Math.sin(tz * Math.PI) * 0.14) * endCap;
+          const frontCap = Math.sin(Math.min(1, (1 - tz) * 7.5) * Math.PI * 0.5);
+          const rearT = THREE.MathUtils.smoothstep(tz, 0, .26);
+          // Keep a rounded rear collar overlapping the neck, rather than
+          // collapsing the entire skull to a triangular point at its back.
+          const halfW = THREE.MathUtils.lerp(.48, viperHalfWidthAt(tz), rearT) * frontCap;
+          const crownH = THREE.MathUtils.lerp(.475, .48 * (1.0 - tz * .36) + Math.sin(tz * Math.PI) * .14, rearT) * frontCap;
           const snoutLift = Math.pow(Math.max(0, (tz - 0.72) / 0.28), 2.0) * 0.09;
 
           for (let it = 0; it <= segTheta; it++) {
@@ -3146,10 +3149,10 @@
 
       const membraneMat = new THREE.MeshPhysicalMaterial({
         map: mouthTex.map,
-        color: 0x7A1818,
-        emissive: 0x1E0404,
-        roughness: 0.16,
-        clearcoat: 0.9,
+        color: 0x721c13,
+        emissive: 0x080201,
+        roughness: 0.42,
+        clearcoat: 0.22,
         side: THREE.DoubleSide
       });
 
@@ -3159,23 +3162,22 @@
         metalness: 0.10
       });
 
-      const eyeIrisMat = new THREE.MeshStandardMaterial({
+      const eyeIrisMat = new THREE.MeshBasicMaterial({
+        // Keep iris pigment legible under the bright studio lights; only the
+        // thin corneal layer contributes the moving reflection.
         map: eyeTex,
-        emissive: new THREE.Color(0xE8B454),
-        emissiveMap: eyeTex,
-        emissiveIntensity: 0.75,
-        roughness: 0.18,
-        metalness: 0.08
+        color: 0xcaa968
       });
 
       const corneaMat = new THREE.MeshPhysicalMaterial({
         color: 0xFFFFFF,
         transparent: true,
-        opacity: 0.22,
-        roughness: 0.02,
+        opacity: 0.045,
+        roughness: 0.12,
         metalness: 0.0,
-        clearcoat: 1.0,
-        clearcoatRoughness: 0.02
+        clearcoat: 0.4,
+        clearcoatRoughness: 0.16,
+        depthWrite: false
       });
 
       const serpentRoot = new THREE.Group();
@@ -3201,11 +3203,13 @@
       upperLocal.add(new THREE.Mesh(createBrowRidgeGeometry(-1), browMat));
 
       const eyeGeo = createForwardEyeGeometry(0.172);
-      const corneaGeo = new THREE.SphereGeometry(0.181, 24, 18);
+      // Only a thin front lens, not a milky white shell around the entire eye.
+      const corneaGeo = new THREE.SphereGeometry(0.173, 32, 20, 0, Math.PI, 0, Math.PI);
       const makeEye = (side) => {
         const g = new THREE.Group();
-        g.position.set(side * 0.44, 0.24, 0.46);
-        g.rotation.y = side * 0.19;
+        g.position.set(side * 0.57, 0.30, 0.46);
+        g.rotation.y = side * 1.0;
+        g.scale.set(1, .92, .68);
         g.add(new THREE.Mesh(eyeGeo, eyeIrisMat));
         g.add(new THREE.Mesh(corneaGeo, corneaMat));
         return g;
@@ -3400,11 +3404,12 @@
       const _spinePts = Array.from({ length: BODY_RINGS + 1 }, () => new THREE.Vector3());
       const _tangent = new THREE.Vector3(), _right = new THREE.Vector3(), _up = new THREE.Vector3();
       const _worldUp = new THREE.Vector3(0, 1, 0), _neckSocket = new THREE.Vector3(), _neckDir = new THREE.Vector3();
+      const _neckEnd = new THREE.Vector3(), _neckStartTangent = new THREE.Vector3(), _neckEndTangent = new THREE.Vector3();
 
       function updateContinuousBody(time, coilTension) {
         headGroup.updateMatrixWorld(true);
-        _neckSocket.set(0, 0.025, -0.52).applyMatrix4(headGroup.matrixWorld);
-        _neckDir.set(0, 0, -1).transformDirection(headGroup.matrixWorld).normalize();
+        _neckSocket.set(0, 0.025, -0.52).applyMatrix4(upperLocal.matrixWorld);
+        _neckDir.set(0, 0, -1).transformDirection(upperLocal.matrixWorld).normalize();
 
         const bodyLen = 15.0;
         for (let i = 0; i <= BODY_RINGS; i++) {
@@ -3418,6 +3423,20 @@
           const x = _neckSocket.x + _neckDir.x * (t * 1.6) * (1 - blend) + waveX * Math.min(1, t * 4.5);
           const y = _neckSocket.y - Math.pow(t, 1.3) * 1.85 + waveY * Math.min(1, t * 4.0);
           _spinePts[i].set(x, y, z);
+        }
+
+        // Curve the first section out of the head's own axis, then blend into
+        // the animated coils with matching tangents at both ends.
+        const neckRings = 12;
+        _neckEnd.copy(_spinePts[neckRings]);
+        _neckStartTangent.copy(_neckDir).multiplyScalar(bodyLen * neckRings / BODY_RINGS);
+        _neckEndTangent.subVectors(_spinePts[neckRings + 1], _spinePts[neckRings - 1]).multiplyScalar(neckRings / 2);
+        for (let i = 0; i <= neckRings; i++) {
+          const u = i / neckRings, u2 = u * u, u3 = u2 * u;
+          _spinePts[i].copy(_neckSocket).multiplyScalar(2 * u3 - 3 * u2 + 1)
+            .addScaledVector(_neckStartTangent, u3 - 2 * u2 + u)
+            .addScaledVector(_neckEnd, -2 * u3 + 3 * u2)
+            .addScaledVector(_neckEndTangent, u3 - u2);
         }
 
         const pos = bodyGeo.attributes.position;
@@ -3435,7 +3454,7 @@
 
           let radius = 0.44;
           if (t < 0.08) {
-            radius = THREE.MathUtils.lerp(0.48, 0.41, t / 0.08);
+            radius = THREE.MathUtils.lerp(0.48, 0.41, THREE.MathUtils.smoothstep(t, 0, .08));
           } else if (t < 0.65) {
             const u = (t - 0.08) / 0.57;
             radius = 0.41 + Math.sin(u * Math.PI) * 0.16;
@@ -3444,7 +3463,7 @@
             radius = THREE.MathUtils.lerp(0.41, 0.025, Math.pow(u, 0.85));
           }
 
-          radius *= (1.0 + Math.sin(time * 2.4 - t * 3.0) * 0.032);
+          radius *= (1.0 + Math.sin(time * 2.4 - t * 3.0) * 0.032 * THREE.MathUtils.smoothstep(t, 0, .12));
 
           for (let j = 0; j <= BODY_RADIAL; j++) {
             const u = j / BODY_RADIAL;
