@@ -24,29 +24,30 @@
     geometry.rotateX(Math.PI / 2);
     geometry.translate(0, .004, 0);
     geometry.computeVertexNormals();
-    const mesh = new THREE.Mesh(geometry, new THREE.MeshPhysicalMaterial({
-      color: 0x7a1821, roughness: .32, metalness: 0, clearcoat: .65,
-      clearcoatRoughness: .24
-    }));
+    const mesh = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ color: 0x46101c }));
     mesh.name = 'Sarpa continuous forked tongue';
     return mesh;
   }
 
-  function createThroat(bumpMap, hingeZ) {
-    const rings = 18, sides = 48;
-    const positions = new Float32Array((rings + 1) * (sides + 1) * 3);
+  function createThroat(bumpMap, hingeZ, halfWidthAt) {
+    // A single U-shaped lining: roof -> rear wall -> floor. Its only exposed
+    // perimeter lies under the lips and cheeks; there is no floating throat rim.
+    const roofRows = 24, backRows = 12, floorRows = 24, sides = 28;
+    const rows = roofRows + backRows + floorRows;
+    const positions = new Float32Array((rows + 1) * (sides + 1) * 3);
     const colors = new Float32Array(positions.length);
-    const uvs = new Float32Array((rings + 1) * (sides + 1) * 2);
+    const uvs = new Float32Array((rows + 1) * (sides + 1) * 2);
     const indices = [];
-    const front = new THREE.Color(0x4c1517), back = new THREE.Color(0x050102);
-    for (let ring = 0; ring <= rings; ring++) {
-      const depth = ring / rings;
-      const shade = front.clone().lerp(back, Math.min(1, depth * 1.3));
+    const front = new THREE.Color(0x6b2831), back = new THREE.Color(0x170407);
+    for (let row = 0; row <= rows; row++) {
+      const depth = row <= roofRows ? row / roofRows
+        : row <= roofRows + backRows ? 1 : 1 - (row - roofRows - backRows) / floorRows;
+      const shade = front.clone().lerp(back, Math.pow(depth, 1.4));
       for (let side = 0; side <= sides; side++) {
-        const at = ring * (sides + 1) + side;
+        const at = row * (sides + 1) + side;
         colors.set([shade.r, shade.g, shade.b], at * 3);
-        uvs.set([side / sides * 2, depth * 2], at * 2);
-        if (ring < rings && side < sides) {
+        uvs.set([side / sides, row / rows * 3], at * 2);
+        if (row < rows && side < sides) {
           const next = at + sides + 1;
           indices.push(at, next, at + 1, at + 1, next, next + 1);
         }
@@ -57,46 +58,44 @@
     geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
     geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
     geometry.setIndex(indices);
-    // Open at the front: the viewer sees recessed walls, never a flat disk.
     const walls = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({
-      // Baked depth shading stays dark under the mouth's very close point light.
+      // Stable depth shading avoids the nearby mouth light bleaching the lining.
       vertexColors: true, side: THREE.DoubleSide
     }));
-    walls.name = 'Recessed open throat walls';
-    const darkness = new THREE.Mesh(new THREE.SphereGeometry(.08, 20, 14),
-      new THREE.MeshBasicMaterial({ color: 0x050102 }));
-    darkness.scale.set(1, .88, .7);
-    darkness.position.z = -.47;
+    walls.name = 'Continuous jaw-attached oral lining';
     const group = new THREE.Group();
-    group.name = 'Sarpa recessed mouth cavity';
-    group.add(walls, darkness);
+    group.name = 'Sarpa continuous mouth lining';
+    group.add(walls);
+    const backZ = -.34;
+    function surface(z, nx, upper, angle) {
+      const t = upper ? (z + .88) / 2.2 : (z + .82) / 2.06;
+      const width = halfWidthAt(t) * (upper ? .74 : .70);
+      const lip = Math.sin(Math.min(1, Math.max(0, (1.14 - z) / .18)) * Math.PI / 2);
+      const x = nx * width * lip;
+      const y = upper ? .015 + (1 - nx * nx) * .055 : .018 + Math.pow(Math.abs(nx), 2.4) * .025;
+      const dz = z - hingeZ;
+      return [x, y * Math.cos(angle) - dz * Math.sin(angle), hingeZ + y * Math.sin(angle) + dz * Math.cos(angle)];
+    }
     function update(upperAngle, lowerAngle) {
-      const frontZ = .42, dz = frontZ - hingeZ;
-      const upperY = .05 * Math.cos(upperAngle) - dz * Math.sin(upperAngle);
-      const lowerY = -.025 * Math.cos(lowerAngle) - dz * Math.sin(lowerAngle);
-      const upperZ = hingeZ + .05 * Math.sin(upperAngle) + dz * Math.cos(upperAngle);
-      const lowerZ = hingeZ - .025 * Math.sin(lowerAngle) + dz * Math.cos(lowerAngle);
-      const middle = (upperY + lowerY) / 2;
-      const radiusY = Math.max(.035, (upperY - lowerY) / 2);
-      for (let ring = 0; ring <= rings; ring++) {
-        const depth = ring / rings;
-        const taper = Math.sqrt(Math.max(0, 1 - depth * depth));
+      for (let row = 0; row <= rows; row++) {
         for (let side = 0; side <= sides; side++) {
-          const theta = side / sides * Math.PI * 2;
-          const vertical = Math.sin(theta);
-          const fold = 1 + .035 * Math.cos(theta * 7 + depth * 5) * Math.sin(depth * Math.PI);
-          const lateral = Math.cos(theta);
-          const x = Math.sign(lateral) * Math.pow(Math.abs(lateral), .5) * .46 * taper * fold;
-          const roundedOpening = Math.sign(vertical) * Math.pow(Math.abs(vertical), .5);
-          const y = middle * (1 - depth * .82) + roundedOpening * (radiusY * (1 - depth) + .055 * depth) * taper * fold;
-          const lipZ = lowerZ + (upperZ - lowerZ) * (vertical + 1) / 2;
-          // End before the neck socket at -.52 so its exterior cap stays hidden.
-          const z = lipZ * (1 - depth) - .43 * depth;
-          const at = (ring * (sides + 1) + side) * 3;
-          positions[at] = x; positions[at + 1] = y; positions[at + 2] = z;
+          const nx = side / sides * 2 - 1;
+          let point;
+          if (row <= roofRows) {
+            point = surface(1.10 + (backZ - 1.10) * row / roofRows, nx, true, upperAngle);
+          } else if (row <= roofRows + backRows) {
+            const t = (row - roofRows) / backRows;
+            const top = surface(backZ, nx, true, upperAngle);
+            const bottom = surface(backZ, nx, false, lowerAngle);
+            point = top.map((value, axis) => value + (bottom[axis] - value) * t);
+            point[2] -= .025 * Math.sin(t * Math.PI) * (1 - nx * nx);
+          } else {
+            const t = (row - roofRows - backRows) / floorRows;
+            point = surface(backZ + (1.04 - backZ) * t, nx, false, lowerAngle);
+          }
+          positions.set(point, (row * (sides + 1) + side) * 3);
         }
       }
-      darkness.position.y = middle * .18;
       geometry.attributes.position.needsUpdate = true;
       geometry.computeVertexNormals();
       geometry.computeBoundingSphere();

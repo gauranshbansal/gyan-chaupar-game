@@ -3197,7 +3197,6 @@
       upperJawGroup.add(upperLocal);
 
       upperLocal.add(new THREE.Mesh(createUpperSkullGeometry(), headScaleMat));
-      upperLocal.add(new THREE.Mesh(createInsetUpperPalateGeometry(), wetMouthMat));
       upperLocal.add(new THREE.Mesh(createBrowRidgeGeometry(1), browMat));
       upperLocal.add(new THREE.Mesh(createBrowRidgeGeometry(-1), browMat));
 
@@ -3258,7 +3257,6 @@
       lowerJawGroup.add(lowerLocal);
 
       lowerLocal.add(new THREE.Mesh(createLowerMandibleGeometry(), headScaleMat));
-      lowerLocal.add(new THREE.Mesh(createInsetLowerGumGeometry(), wetMouthMat));
 
       const lowerToothGeo = createCurvedFangGeometry(0.11, 0.015, 0.03);
       [-1, 1].forEach((side) => {
@@ -3276,12 +3274,12 @@
 
       // Continuous forked tongue, anchored below the lower gum line.
       const tongueGroup = new THREE.Group();
-      tongueGroup.position.set(0, -0.015, -0.10);
+      tongueGroup.position.set(0, 0.034, -0.10);
       lowerLocal.add(tongueGroup);
       tongueGroup.add(window.GyanSerpentMouth.createTongue());
 
       // Open, recessed walls follow both jaws instead of exposing a cone cap.
-      const throat = window.GyanSerpentMouth.createThroat(mouthTex.bumpMap, HINGE_Z);
+      const throat = window.GyanSerpentMouth.createThroat(mouthTex.bumpMap, HINGE_Z, viperHalfWidthAt);
       headGroup.add(throat.group);
 
       const throatLight = new THREE.PointLight(0xB02A2A, 0.0, 5.0);
@@ -3821,7 +3819,7 @@
         fangLeftPivot.visible = fangsVisible;
         fangRightPivot.visible = fangsVisible;
 
-        throatLight.intensity = jawOpen * 3.8;
+        throatLight.intensity = jawOpen * 0.45;
 
         updateJawMembranes(upperRotX, lowerRotX, jawOpen);
         updateContinuousBody(totalTime, coilTension);
